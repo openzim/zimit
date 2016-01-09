@@ -20,8 +20,8 @@ In a separate process, you also need to run the worker::
 
   $ rqworker
 
-Then, the only thing you need is an HTTP client to tell the proxy to download
-a package. So you can go with your browser at
-http://localhost:6543/blog.notmyidea.org
 
-And it will download it at the location specified in the configuration file.
+To test it::
+
+  $ http POST http://0.0.0.0:6543/website url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
+

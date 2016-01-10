@@ -24,7 +24,8 @@ setup(name='zimit',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
-      install_requires=['cornice', 'waitress', 'rq', 'colander'],
+      install_requires=['cornice', 'waitress', 'rq', 'colander',
+                        'python-slugify', 'pyramid_mailer'],
       entry_points="""\
       [paste.app_factory]
       main=zimit:main

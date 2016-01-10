@@ -1,12 +1,7 @@
-import subprocess
-import shlex
-
 from pyramid.config import Configurator
 from pyramid.events import NewRequest
 from redis import Redis
 from rq import Queue
-
-
 
 
 def main(global_config, **settings):

@@ -142,4 +142,17 @@ UWSGI configuration
   plugins         = python
 
 
+supervisord configuration
+=========================
+
+::
+
+  [program:zimit-worker]
+  command=/home/ideascube/zimit.ideascube.org/venv/bin/rqworker
+  directory=/home/ideascube/zimit.ideascube.org/zimit/
+  user=www-data
+  autostart=true
+  autorestart=true
+  redirect_stderr=true
+
 That's it!

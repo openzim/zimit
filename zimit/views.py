@@ -2,6 +2,14 @@ from cornice import Service
 from colander import MappingSchema, SchemaNode, String
 
 webpage = Service(name='website', path='/website')
+home = Service(name='home', path='/')
+
+@home.get()
+def hello(request):
+    return {
+        "project_name": "zimit",
+        "project_docs": "https://github.com/almet/zimit/"
+    }
 
 
 class WebSiteSchema(MappingSchema):

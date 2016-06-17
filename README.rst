@@ -8,22 +8,29 @@ Given any WebSite, get a ZIM file out of it!
 How to use it?
 ##############
 
-Install it using pip
+Install it by checking the sources from github.
+
 ::
 
-  $ pip install zimit
+  $ git clone https://github.com/almet/zimit.git
+  $ cd zimit
+
+Create a virtual environment and install the project in it::
+
+  $ virtualenv venv
+  $ venv/bin/pip install -e .
 
 Then, run it how you want, for instance with pserve::
 
-  $ pserve zimit.ini
+  $ venv/bin/pserve zimit.ini
 
 
 In a separate process, you also need to run the worker::
 
-  $ rqworker
+  $ venv/bin/rqworker
 
 
-To test it::
+And you're ready to go. To test it::
 
   $ http POST http://0.0.0.0:6543/website url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
 
@@ -68,11 +75,6 @@ available in /home/www, so let's consider this will be the case here::
   $ mkdir /home/www/zimit.notmyidea.org
   $ cd /home/www/zimit.notmyidea.org
   $ git clone https://github.com/almet/zimit.git
-
-Create a virtual environment and activate it::
-
-  $ virtualenv venv
-  $ activate venv/bin/activate
 
 Then, you can change the configuration file, by creating a new one::
 

@@ -4,6 +4,7 @@ from colander import MappingSchema, SchemaNode, String
 webpage = Service(name='website', path='/website')
 home = Service(name='home', path='/')
 
+
 @home.get()
 def hello(request):
     return {
@@ -22,7 +23,7 @@ class WebSiteSchema(MappingSchema):
                         location="body", type='str')
     welcome = SchemaNode(String(), default="index.html",
                          location="body", type='str')
-    language = SchemaNode(String(), default="en",
+    language = SchemaNode(String(), default="eng",
                           location="body", type='str')
 
 

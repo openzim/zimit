@@ -1,16 +1,14 @@
 from cornice import Service
 from colander import MappingSchema, SchemaNode, String
+from pyramid.httpexceptions import HTTPTemporaryRedirect
 
-webpage = Service(name='website', path='/website')
+website = Service(name='website', path='/website')
 home = Service(name='home', path='/')
 
 
 @home.get()
-def hello(request):
-    return {
-        "project_name": "zimit",
-        "project_docs": "https://github.com/almet/zimit/"
-    }
+def redirect_to_app(request):
+    raise HTTPTemporaryRedirect("/app/index.html")
 
 
 class WebSiteSchema(MappingSchema):
@@ -27,7 +25,7 @@ class WebSiteSchema(MappingSchema):
                           location="body", type='str')
 
 
-@webpage.post(schema=WebSiteSchema)
+@website.post(schema=WebSiteSchema)
 def crawl_new_website(request):
     request.queue.enqueue(
         request.client.create_zim_from_website,

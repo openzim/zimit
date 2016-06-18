@@ -110,6 +110,7 @@ Nginx configuration
 
         # Finally, send all non-media requests to the Pyramid server.
         location / {
+            proxy_buffering off
             uwsgi_pass  zimit_upstream;
             include     /var/ideascube/uwsgi_params;
         }

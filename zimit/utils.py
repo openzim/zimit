@@ -1,4 +1,5 @@
 import os
+import os.path
 import shlex
 import subprocess
 
@@ -13,3 +14,9 @@ def ensure_paths_exists(*paths):
         if not os.path.exists(path):
             msg = '%s does not exist.' % path
             raise OSError(msg)
+
+
+def read_fifo(filename):
+    with open(filename) as fifo:
+        while os.path.exists(filename):
+            yield fifo.readline()

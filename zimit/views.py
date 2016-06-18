@@ -1,8 +1,12 @@
 from cornice import Service
 from colander import MappingSchema, SchemaNode, String
+from pyramid.response import Response
 
-webpage = Service(name='website', path='/website')
+from zimit import utils
+
 home = Service(name='home', path='/')
+webpage = Service(name='website', path='/website')
+logs = Service(name='home', path='/logs')
 
 
 @home.get()
@@ -34,4 +38,18 @@ def crawl_new_website(request):
         request.validated,
         timeout=1800)
     request.response.status_code = 201
-    return {'success': True}
+    return {
+        'success': True
+    }
+
+
+@logs.get()
+def get_logs(request):
+    stream_headers = [
+        ('Content-Type', 'text/event-stream'),
+        ('Cache-Control', 'no-cache')
+    ]
+    return Response(
+        headerlist=stream_headers,
+        app_iter=utils.read_fifo("toto")
+    )

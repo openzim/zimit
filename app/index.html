@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<head>
+</head>
+  <link rel="stylesheet" href="./material.min.css">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <title>Zimit — Create a zim archive out of a website URL</title>
+
+    <meta charset="utf-8" />
+<body>
+  <!-- Always shows a header, even in smaller screens. -->
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title">Zim It! — A zim file creator</span>
+    </div>
+  </header>
+  <main class="mdl-layout__content">
+    <div class="page-content">
+
+<form action="#" id="zimcreator" onSubmit="submitForm()">
+<div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+  <div class="mdl-tabs__tab-bar">
+      <a href="#general-panel" class="mdl-tabs__tab is-active">General</a>
+      <a href="#advanced-panel" class="mdl-tabs__tab">Advanced options</a>
+  </div>
+  <div class="mdl-tabs__panel is-active" id="general-panel">
+
+    <div class="mdl-grid">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="url" id="url">
+        <label class="mdl-textfield__label" for="website-url">Website URL</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="title">
+        <label class="mdl-textfield__label" for="zim-title">Zim title</label>
+      </div>
+		</div>
+
+      <div class="mdl-grid">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="email" id="email">
+          <label class="mdl-textfield__label" for="email">Enter an email to be notified</label>
+        </div>
+  		</div>
+
+  </div>
+  <div class="mdl-tabs__panel" id="advanced-panel">
+    <div class="mdl-grid">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <textarea class="mdl-textfield__input" type="text" id="description"></textarea>
+        <label class="mdl-textfield__label" for="language">Long description of the content</label>
+      </div>
+    </div>
+    <div class="mdl-grid">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="email" id="author">
+        <label class="mdl-textfield__label" for="email">Email of the author of the website</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="language">
+        <label class="mdl-textfield__label" for="language">Language</label>
+      </div>
+    </div>
+    <div class="mdl-grid">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="string" id="welcome">
+        <label class="mdl-textfield__label" for="welcome" placeholder="index.html">File to use as the welcome page</label>
+      </div>
+    </div>
+  </div>
+  <div class="mdl-grid">
+    <p class="mdl-cell mdl-cell--10-col" style="margin-bottom:40px">This is a <a href="http://www.openzim.org/wiki/OpenZIM">Zim</a> creator. Enter the <em>url</em> of the website you want ton turn in a zim file, a <em>title</em> and the <em>language</em> and click on <em>Create zim File</em>. <br>If
+needed, you can also add a description, the name of the origanl author
+of the content and your email if you want to be notified when the zim is
+ready. Enjoy !</p>
+    <div data-upgraded=",MaterialTextfield" class="mdl-textfield mdl-js-textfield mdl-cell mdl-cell--10-col">
+      <button data-upgraded=",MaterialButton,MaterialRipple" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Create zim file<span class="mdl-button__ripple-container"><span class="mdl-ripple"></span></span></button>
+    </div>
+  </div>
+</div>
+</form>
+</main>
+<div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+  <div class="mdl-snackbar__text"></div>
+  <button class="mdl-snackbar__action" type="button"></button>
+</div>
+</div>
+  <script src="./material.min.js"></script>
+  <script type="text/javascript">
+
+function getField(field) {
+  return document.forms['zimcreator'].elements[field].value;
+}
+
+function informUser(message) {
+  document.querySelector('#snackbar').MaterialSnackbar.showSnackbar({
+    message: message,
+    timeout: 2000,
+  });
+}
+
+function submitForm() {
+  var content = {
+    url: getField('url'),
+    title: getField('title'),
+    email: getField('email'),
+    description: getField('description'),
+    author: getField('author'),
+    language: getField('language'),
+    welcome: getField('welcome'),
+  }
+  fetch("/website", {
+    method: "POST",
+    body: JSON.stringify(content),
+    headers: {'Content-Type': 'application/json'}
+  }).then(function (result) {
+    if (result.status >= 400) {
+      informUser("The server wasn't able to start the job, lplease check your inputs.");
+    } else {
+      informUser("The job has been submitted! You'll receive an email when it's finished.");
+    }
+  })
+ .catch(function (error) {
+   informUser("The server wasn't able to start the job!");
+ });
+   return false;
+}
+  </script>
+
+</body>

@@ -2,6 +2,8 @@ from cornice import Service
 from colander import MappingSchema, SchemaNode, String
 from pyramid.httpexceptions import HTTPTemporaryRedirect
 
+from zimit.worker import create_zim
+
 website = Service(name='website', path='/website')
 home = Service(name='home', path='/')
 
@@ -28,7 +30,9 @@ class WebSiteSchema(MappingSchema):
 @website.post(schema=WebSiteSchema)
 def crawl_new_website(request):
     request.queue.enqueue(
-        request.client.create_zim_from_website,
+        create_zim,
+        request.registry.settings,
+        request.zim_creator,
         request.validated,
         timeout=1800)
     request.response.status_code = 201

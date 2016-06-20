@@ -6,7 +6,7 @@ import subprocess
 def spawn(cmd, logfile=None):
     """Quick shortcut to spawn a command on the filesystem"""
     if logfile is not None:
-        with open(logfile, "w") as f:
+        with open(logfile, "a+") as f:
             prepared_cmd = shlex.split("stdbuf -o0 %s" % cmd)
             process = subprocess.Popen(prepared_cmd, stdout=f)
     else:

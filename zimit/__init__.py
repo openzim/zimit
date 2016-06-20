@@ -5,8 +5,6 @@ from pyramid.static import static_view
 from redis import Redis
 from rq import Queue
 
-from zimit import creator
-
 
 def main(global_config, **settings):
     config = Configurator(settings=settings)
@@ -14,8 +12,6 @@ def main(global_config, **settings):
 
     def attach_objects_to_request(event):
         event.request.queue = config.registry.queue
-        settings = event.request.registry.settings
-        event.request.zim_creator = creator.load_from_settings(settings)
 
     config.add_subscriber(attach_objects_to_request, NewRequest)
 

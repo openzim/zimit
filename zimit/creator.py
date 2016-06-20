@@ -1,3 +1,4 @@
+import os
 import os.path
 import shutil
 import tempfile
@@ -21,17 +22,21 @@ class ZimCreator(object):
     """
 
     def __init__(self, zimwriterfs_bin, output_location,
-                 author=DEFAULT_AUTHOR, httrack_bin=HTTRACK_BIN):
+                 author=DEFAULT_AUTHOR, httrack_bin=HTTRACK_BIN,
+                 logging=None):
         self.output_location = output_location
         self.author = author
         self.zimwriterfs_bin = zimwriterfs_bin
         self.httrack_bin = httrack_bin
+        self.logging = logging
 
         utils.ensure_paths_exists(
             self.zimwriterfs_bin,
             self.httrack_bin,
-            self.output_location
-        )
+            self.output_location)
+
+    def _spawn(self, cmd):
+        return utils.spawn(cmd, self.logging)
 
     def download_website(self, url, destination_path):
         """Downloads the website using HTTrack and wait for the results to
@@ -44,8 +49,7 @@ class ZimCreator(object):
             The absolute location of a folder where the files will be written.
         """
         options = (self.httrack_bin, destination_path, url)
-        p = utils.spawn("%s --path %s %s" % options)
-        p.wait()  # Wait until the content is available (this is synchronous)
+        self._spawn("%s --path %s %s" % options)
 
     def prepare_website_folder(self, url, input_location):
         """Prepare the website files to make them ready to be embedded in a zim
@@ -86,8 +90,7 @@ class ZimCreator(object):
             ' -d "{description}" -f {icon} -c "{author}"'
             ' -p "{publisher}" {location} {output}'
         ).format(**zim_options)
-        p = utils.spawn(options)
-        p.wait()
+        self._spawn(options)
         return output_name
 
     def create_zim_from_website(self, url, zim_options):
@@ -113,7 +116,7 @@ class ZimCreator(object):
         return zim_file
 
 
-def load_from_settings(settings):
+def load_from_settings(settings, logging=None):
     """Load the ZimCreator object from the given pyramid settings, converting
     them to actual parameters.
 
@@ -129,5 +132,6 @@ def load_from_settings(settings):
         zimwriterfs_bin=settings['zimit.zimwriterfs_bin'],
         httrack_bin=settings.get('zimit.httrack_bin'),
         output_location=settings.get('zimit.output_location'),
-        author=settings.get('zimit.default_author')
+        author=settings.get('zimit.default_author'),
+        logging=logging
     )

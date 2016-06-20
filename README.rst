@@ -33,6 +33,12 @@ Optional parameters
 - **description**: The description that will be embedded in the Zim file
 - **author**: The author of the content
 
+Return values
+-------------
+
+- **job_id**: The job id is returned in JSON format. It can be used to know the
+  status of the process.
+
 Status codes
 ------------
 
@@ -40,6 +46,24 @@ Status codes
   expected inputs. In case of error, have a look at the body of the response:
   it contains information about what is missing.
 - `201 Created` will be returned if the process started.
+
+GET /status/{jobid}
+===================
+
+Retrieve the status of a job and displays the associated logs.
+
+Return values
+-------------
+
+- **status**: The status of the job, it is one of 'queued', finished',
+  'failed', 'started' and 'deferred'.
+- **log**: The logs of the job.
+
+Status codes
+------------
+
+- `404 Not Found` will be returned in case the requested job does not exist.
+- `200 OK` will be returned in any other case.
 
 Okay, so how do I install it on my server?
 ##########################################
@@ -79,7 +103,7 @@ Installing the dependencies
 
 ::
 
-    sudo apt-get install httrack libzim-dev libmagic-dev liblzma-dev libz-dev build-essential libtool redis-server automake pkg-config
+    sudo apt-get install httrack libzim-dev libmagic-dev liblzma-dev libz-dev build-essential libtool libgumbo-dev redis-server automake pkg-config
 
 Installing zimwriterfs
 ======================

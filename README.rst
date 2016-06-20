@@ -11,8 +11,8 @@ Exposed API
 All APIs are talking JSON over HTTP. As such, all parameters should be sent as
 stringified JSON and the Content-Type should be set to "application/json".
 
-POST /websites
-==============
+POST /website-zim
+=================
 
 By posting to this endpoint, you are asking the system to start a new download
 of a website and a conversion into a Zim format.
@@ -47,6 +47,19 @@ Status codes
   it contains information about what is missing.
 - `201 Created` will be returned if the process started.
 
+Exemple
+-------
+
+::
+
+  $ http POST http://0.0.0.0:6543/website-url url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
+  HTTP/1.1 201 Created
+
+  {
+      "job": "5012abe3-bee2-4dd7-be87-39a88d76035d"
+  }
+
+
 GET /status/{jobid}
 ===================
 
@@ -64,6 +77,20 @@ Status codes
 
 - `404 Not Found` will be returned in case the requested job does not exist.
 - `200 OK` will be returned in any other case.
+
+Exemple
+-------
+
+::
+
+    http GET http://0.0.0.0:6543/status/5012abe3-bee2-4dd7-be87-39a88d76035d
+    HTTP/1.1 200 OK
+
+    {
+        "log": "<snip>",
+        "status": "finished"
+    }
+
 
 Okay, so how do I install it on my server?
 ##########################################
@@ -92,7 +119,7 @@ In a separate process, you also need to run the worker::
 
 And you're ready to go. To test it::
 
-  $ http POST http://0.0.0.0:6543/website url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
+  $ http POST http://0.0.0.0:6543/website-url url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
 
 
 Debian dependencies

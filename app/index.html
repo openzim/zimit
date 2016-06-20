@@ -67,7 +67,7 @@ function submitForm() {
     title: getField('title'),
     email: getField('email'),
   }
-  fetch("/website", {
+  fetch("/website-zim", {
     method: "POST",
     body: JSON.stringify(content),
     headers: {'Content-Type': 'application/json'}

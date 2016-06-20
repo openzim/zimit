@@ -6,7 +6,7 @@ from pyramid.httpexceptions import HTTPTemporaryRedirect, HTTPNotFound
 
 from zimit.worker import create_zim
 
-website = Service(name='website', path='/website')
+website = Service(name='website', path='/website-zim')
 home = Service(name='home', path='/')
 status = Service(name='status', path='/status/{id}')
 

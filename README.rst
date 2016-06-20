@@ -2,13 +2,49 @@
 Create ZIM files out of HTTP websites
 #####################################
 
-Given any WebSite, get a ZIM file out of it!
+This project provides an API and an user interface in order to convert any
+website into a Zim file.
 
+Exposed API
+###########
 
-How to use it?
-##############
+All APIs are talking JSON over HTTP. As such, all parameters should be sent as
+stringified JSON and the Content-Type should be set to "application/json".
 
-Install it by checking the sources from github.
+POST /websites
+==============
+
+By posting to this endpoint, you are asking the system to start a new download
+of a website and a conversion into a Zim format.
+
+Required parameters
+-------------------
+
+- `url `: URL of the website to be crawled
+- `title`: Title that will be used in the created Zim file
+- `email`: Email address that will get notified when the creation of the file is over
+
+Optional parameters
+-------------------
+
+- `language`: An `ISO 639-3 <https://en.wikipedia.org/wiki/ISO_639-3>`_ code
+   representing the language
+- `welcome`: the page that will be first shown in the Zim file
+- `description`: The description that will be embedded in the Zim file
+- `author`: The author of the content
+
+Status codes
+------------
+
+- `400 Bad Request` will be returned in case you are not respecting the
+  expected inputs. In case of error, have a look at the body of the response:
+  it contains information about what is missing.
+- `201 Created` will be returned if the process started.
+
+Okay, so how do I install it on my server?
+##########################################
+
+Currently, the best way to install it is by retrieving the sources from github
 
 ::
 
@@ -33,7 +69,6 @@ In a separate process, you also need to run the worker::
 And you're ready to go. To test it::
 
   $ http POST http://0.0.0.0:6543/website url="https://refugeeinfo.eu/" title="Refugee Info" email="alexis@notmyidea.org"
-
 
 
 Debian dependencies

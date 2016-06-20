@@ -23,12 +23,12 @@ class ZimCreator(object):
 
     def __init__(self, zimwriterfs_bin, output_location,
                  author=DEFAULT_AUTHOR, httrack_bin=HTTRACK_BIN,
-                 logging=None):
+                 log_file=None):
         self.output_location = output_location
         self.author = author
         self.zimwriterfs_bin = zimwriterfs_bin
         self.httrack_bin = httrack_bin
-        self.logging = logging
+        self.log_file = log_file
 
         utils.ensure_paths_exists(
             self.zimwriterfs_bin,
@@ -36,7 +36,7 @@ class ZimCreator(object):
             self.output_location)
 
     def _spawn(self, cmd):
-        return utils.spawn(cmd, self.logging)
+        return utils.spawn(cmd, self.log_file)
 
     def download_website(self, url, destination_path):
         """Downloads the website using HTTrack and wait for the results to
@@ -116,7 +116,7 @@ class ZimCreator(object):
         return zim_file
 
 
-def load_from_settings(settings, logging=None):
+def load_from_settings(settings, log_file=None):
     """Load the ZimCreator object from the given pyramid settings, converting
     them to actual parameters.
 
@@ -133,5 +133,5 @@ def load_from_settings(settings, logging=None):
         httrack_bin=settings.get('zimit.httrack_bin'),
         output_location=settings.get('zimit.output_location'),
         author=settings.get('zimit.default_author'),
-        logging=logging
+        log_file=log_file
     )

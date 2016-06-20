@@ -20,18 +20,18 @@ of a website and a conversion into a Zim format.
 Required parameters
 -------------------
 
-- `url `: URL of the website to be crawled
-- `title`: Title that will be used in the created Zim file
-- `email`: Email address that will get notified when the creation of the file is over
+- **url**: URL of the website to be crawled
+- **title**: Title that will be used in the created Zim file
+- **email**: Email address that will get notified when the creation of the file is over
 
 Optional parameters
 -------------------
 
-- `language`: An `ISO 639-3 <https://en.wikipedia.org/wiki/ISO_639-3>`_ code
+- **language**: An `ISO 639-3 <https://en.wikipedia.org/wiki/ISO_639-3>`_ code
    representing the language
-- `welcome`: the page that will be first shown in the Zim file
-- `description`: The description that will be embedded in the Zim file
-- `author`: The author of the content
+- **welcome**: the page that will be first shown in the Zim file
+- **description**: The description that will be embedded in the Zim file
+- **author**: The author of the content
 
 Status codes
 ------------

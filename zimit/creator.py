@@ -23,12 +23,13 @@ class ZimCreator(object):
 
     def __init__(self, zimwriterfs_bin, output_location,
                  author=DEFAULT_AUTHOR, httrack_bin=HTTRACK_BIN,
-                 log_file=None):
+                 log_file=None, max_download_speed=25000):
         self.output_location = output_location
         self.author = author
         self.zimwriterfs_bin = zimwriterfs_bin
         self.httrack_bin = httrack_bin
         self.log_file = log_file
+        self.max_download_speed = max_download_speed
 
         utils.ensure_paths_exists(
             self.zimwriterfs_bin,
@@ -48,8 +49,15 @@ class ZimCreator(object):
         :param destination_path:
             The absolute location of a folder where the files will be written.
         """
-        options = (self.httrack_bin, destination_path, url)
-        self._spawn("%s --path %s %s" % options)
+        options = {
+            "path": destination_path,
+            "max-rate": self.max_download_speed,
+            "keep-alive": None,
+            "robots": 0,
+            "near": None,
+        }
+
+        self._spawn(utils.get_command(self.httrack_bin, url, **options))
 
     def prepare_website_folder(self, url, input_location):
         """Prepare the website files to make them ready to be embedded in a zim
@@ -58,10 +66,11 @@ class ZimCreator(object):
         :returns:
             the absolute location of the website folder, ready to be embedded.
         """
-        netloc = urlparse.urlparse(url).netloc
+        netloc = urlparse.urlparse(url).netloc.replace(":", "_")
         website_folder = os.path.join(input_location, netloc)
         if not os.path.isdir(website_folder):
-            raise Exception("Unable to find the website folder!")
+            message = "Unable to find the website folder! %s" % website_folder
+            raise Exception(message)
         shutil.copy('./favicon.ico', website_folder)
         return website_folder
 

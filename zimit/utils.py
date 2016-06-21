@@ -21,3 +21,15 @@ def ensure_paths_exists(*paths):
         if not os.path.exists(path):
             msg = '%s does not exist.' % path
             raise OSError(msg)
+
+
+def get_command(cmd, *params, **options):
+    prepared_options = []
+    for key, value in options.items():
+        if value is None:
+            opt = "--%s" % key
+        else:
+            opt = "--%s=%s" % (key, value)
+        prepared_options.append(opt)
+
+    return " ".join((cmd, " ".join(params), " ".join(prepared_options)))

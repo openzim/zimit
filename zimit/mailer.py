@@ -21,7 +21,18 @@ class ZimReadyMessage(Message):
     def __init__(self, email, zim_link):
         subject = "[ZimIt!] Your zimfile is ready!"
 
-        bdata = "{zim_link}".format(zim_link=zim_link)
+        bdata = """
+Hi,
+
+You have asked for the creation of a zim file, and it is now ready !
+
+You can access it at the following URL:
+
+    {zim_link}
+
+Cheers,
+ZimIt.
+""".format(zim_link=zim_link)
         hdata = bdata
 
         body = Attachment(data=bdata, transfer_encoding="quoted-printable")

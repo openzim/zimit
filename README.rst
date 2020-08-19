@@ -1,3 +1,5 @@
+⚠️ this branch was created in 2016 and is now outdated. See master branch for current codebase.
+
 #####################################
 Create ZIM files out of HTTP websites
 #####################################

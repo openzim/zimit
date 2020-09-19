@@ -1,0 +1,11 @@
+{
+  "name": "zimit",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/openzim/zimit",
+  "author": "Ilya Kreymer <ikreymer@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer-core": "^5.3.0"
+  }
+}

@@ -3,12 +3,13 @@ const { Cluster } = require("puppeteer-cluster");
 const child_process = require("child_process");
 
 async function run(params) {
+  // Chrome Flags, including proxy server
   const args = [
-    "--no-first-run",
-    "--no-xshm",
+    "--no-xshm", // needed for Chrome >80 (check if puppeteer adds automatically)
     `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`
   ];
 
+  // Puppeter Options
   const puppeteerOptions = {
     headless: true,
     executablePath: "/usr/bin/google-chrome",
@@ -16,6 +17,7 @@ async function run(params) {
     args
   };
 
+  // Puppeteer Cluster init and options
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_PAGE,
     maxConcurrency: Number(params.workers) || 1,
@@ -25,14 +27,22 @@ async function run(params) {
     monitor: true
   });
 
+  // Maintain own seen list
   let seenList = new Set();
   const url = params._[0];
 
   let { waitUntil, timeout, scope } = params;
+
+  // waitUntil condition (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)
   waitUntil = waitUntil || "load";
+
+  // Timeout per page
   timeout = timeout || 60000;
+
+  // Scope for crawl, default to the domain of the URL
   scope = scope || new URL(url).origin + "/";
 
+  // Crawl Task
   cluster.task(async ({page, data}) => {
     const {url} = data;
 
@@ -48,13 +58,10 @@ async function run(params) {
       });
 
       for (data of result) {
-        if (seenList.has(data.url)) {
-          continue;
-        }
-        //console.log(`check ${data.url} in ${allowedDomain}`);
-        if (scope && data.url.startsWith(scope)) {
-          seenList.add(data.url);
-          cluster.queue({url: data.url});
+        const newUrl = shouldCrawl(scope, seenList, data.url);
+        if (newUrl) {
+          seenList.add(newUrl);
+          cluster.queue({url: newUrl});
         }
       }
     } catch (e) {
@@ -78,6 +85,37 @@ async function run(params) {
   //await new Promise((resolve) => {
   child_process.execSync(warc2zim, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
   //});
+}
+
+
+function shouldCrawl(scope, seenList, url) {
+  try {
+    url = new URL(url);
+  } catch(e) {
+    return false;
+  }
+
+  // remove hashtag
+  url.hash = "";
+
+  // only queue http/https URLs
+  if (url.protocol != "http:" && url.protocol != "https:") {
+    return false;
+  }
+
+  url = url.href;
+
+  // skip already crawled
+  if (seenList.has(url)) {
+    return false;
+  }
+
+  // if scope is provided, skip urls not in scope
+  if (scope && !url.startsWith(scope)) {
+    return false;
+  }
+
+  return url;
 }
 
 

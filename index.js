@@ -1,45 +1,80 @@
 const puppeteer = require("puppeteer-core");
+const { Cluster } = require("puppeteer-cluster");
 
-const PAGE_TIMEOUT = 60000;
+async function run(params) {
+  const args = [
+    "--no-first-run",
+    "--no-xshm",
+    `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`
+  ];
 
-async function run() {
-  const defaultViewport = null;
-  const browserURL = `http://localhost:9222`;
-  let browser = null;
+  const puppeteerOptions = {
+    headless: true,
+    executablePath: "/usr/bin/google-chrome",
+    ignoreHTTPSErrors: true,
+    args
+  };
 
-  console.log("waiting for browser...");
+  const cluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_PAGE,
+    maxConcurrency: Number(params.workers) || 1,
+    skipDuplicateUrls: true,
+    puppeteerOptions,
+    puppeteer,
+    monitor: true
+  });
 
-  while (!browser) {
+  let seenList = new Set();
+  const url = params._[0];
+
+  let { waitUntil, timeout, scope } = params;
+  waitUntil = waitUntil || "load";
+  timeout = timeout || 60000;
+  scope = scope || new URL(url).origin + "/";
+
+  cluster.task(async ({page, data}) => {
+    const {url} = data;
+
     try {
-      browser = await puppeteer.connect({browserURL, defaultViewport});
+      await page.goto(url, {waitUntil, timeout});
     } catch (e) {
-      //console.log(e);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      console.log(`Load timeout for ${url}`);
     }
-  }
 
-  console.log("connected!");
+    try{
+      const result = await page.evaluate(() => {
+        return [...document.querySelectorAll('a[href]')].map(el => ({ url: el.href}))
+      });
 
-  const pages = await browser.pages();
-    
-  const page = pages.length ? pages[0] : await browser.newPage();
+      for (data of result) {
+        if (seenList.has(data.url)) {
+          continue;
+        }
+        //console.log(`check ${data.url} in ${allowedDomain}`);
+        if (scope && data.url.startsWith(scope)) {
+          seenList.add(data.url);
+          cluster.queue({url: data.url});
+        }
+      }
+    } catch (e) {
+      console.warn("error");
+      console.warn(e);
+    }
+  });
 
-  console.log(process.argv);
-  const url = process.argv.length > 2 ? process.argv[2] : "";
+  cluster.queue({url});
 
-  if (!url) {
-    throw "No URL specified, exiting";
-  }
-
-  await page.goto(url, {"waitUntil": "networkidle0", "timeout": PAGE_TIMEOUT});
-
-  console.log("loaded!");
+  await cluster.idle();
+  await cluster.close();
 }
 
 
 async function main() {
+  const params = require('yargs').argv;
+  console.log(params);
+
   try {
-    await run();
+    await run(params);
     process.exit(0);
   } catch(e) {
     console.log(e);

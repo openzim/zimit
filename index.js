@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer-core");
 const { Cluster } = require("puppeteer-cluster");
+const child_process = require("child_process");
 
 async function run(params) {
   const args = [
@@ -66,6 +67,17 @@ async function run(params) {
 
   await cluster.idle();
   await cluster.close();
+
+  const zimName = params.name || new URL(url).hostname;
+  const zimOutput = params.output || "/output";
+
+  const warc2zim = `warc2zim --url ${url} --name ${zimName} --output ${zimOutput} ./collections/capture/archive/\*.warc.gz`;
+
+  console.log("Running: " + warc2zim);
+
+  //await new Promise((resolve) => {
+  child_process.execSync(warc2zim, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
+  //});
 }
 
 

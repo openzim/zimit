@@ -28,18 +28,18 @@ RUN useradd zimit --shell /bin/bash --create-home \
 
 WORKDIR /app
 
-ADD index.js /app/
 ADD package.json /app/
 
 RUN chown -R zimit /app
 
-USER zimit
+#USER zimit
 
 RUN yarn install
 
 ADD config.yaml /app/
 ADD uwsgi.ini /app/
 ADD run.sh /app/
+ADD index.js /app/
 
 ENTRYPOINT ["/app/run.sh"]
 

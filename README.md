@@ -30,6 +30,7 @@ The image accepts the following parameters:
 - `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
 - `--name` - Name of ZIM file (defaults to the hostname of the URL)
 - `--output` - output directory (defaults to `/output`)
+- `--limit U` - Limit capture to at most U URLs
 
 The following is an example usage. The `--cap-add` and `--shm-size` flags are needed to run Chrome in Docker.
 

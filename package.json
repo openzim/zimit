@@ -6,6 +6,8 @@
   "author": "Ilya Kreymer <ikreymer@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "abort-controller": "^3.0.0",
+    "node-fetch": "^2.6.1",
     "puppeteer-cluster": "^0.22.0",
     "puppeteer-core": "^5.3.0",
     "yargs": "^16.0.3"

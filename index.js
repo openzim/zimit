@@ -59,6 +59,8 @@ async function run(params) {
     } else {
       exclude = exclude.map(e => new RegExp(e));
     }
+  } else {
+    exclude = [];
   }
 
   console.log("Limit: " + limit);

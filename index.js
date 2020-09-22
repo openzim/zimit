@@ -39,7 +39,7 @@ async function run(params) {
   let seenList = new Set();
   const url = params._[0];
 
-  let { waitUntil, timeout, scope, limit } = params;
+  let { waitUntil, timeout, scope, limit, exclude } = params;
 
   // waitUntil condition (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)
   waitUntil = waitUntil || "load";
@@ -52,6 +52,14 @@ async function run(params) {
 
   // Limit number of pages captured
   limit = Number(limit) || 0;
+
+  if (exclude) {
+    if (typeof(exclude) === "string") {
+      exclude = [new RegExp(exclude)];
+    } else {
+      exclude = exclude.map(e => new RegExp(e));
+    }
+  }
 
   console.log("Limit: " + limit);
 
@@ -85,7 +93,7 @@ async function run(params) {
 
     try {
       for (data of results) {
-        const newUrl = shouldCrawl(scope, seenList, data.url);
+        const newUrl = shouldCrawl(scope, seenList, data.url, exclude);
 
         if (newUrl) {
           seenList.add(newUrl);
@@ -119,7 +127,7 @@ async function run(params) {
 }
 
 
-function shouldCrawl(scope, seenList, url) {
+function shouldCrawl(scope, seenList, url, exclude) {
   try {
     url = new URL(url);
   } catch(e) {
@@ -144,6 +152,14 @@ function shouldCrawl(scope, seenList, url) {
   // if scope is provided, skip urls not in scope
   if (scope && !url.startsWith(scope)) {
     return false;
+  }
+
+  // check exclusions
+  for (const e of exclude) {
+    if (e.exec(url)) {
+      //console.log(`Skipping ${url} excluded by ${e}`);
+      return false;
+    }
   }
 
   return url;

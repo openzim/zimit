@@ -31,6 +31,7 @@ The image accepts the following parameters:
 - `--name` - Name of ZIM file (defaults to the hostname of the URL)
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
+- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times.
 
 The following is an example usage. The `--cap-add` and `--shm-size` flags are needed to run Chrome in Docker.
 

@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer-core");
+const puppeteer = require("puppeteer");
 const { Cluster } = require("puppeteer-cluster");
 const child_process = require("child_process");
 const fetch = require("node-fetch");
@@ -20,14 +20,14 @@ async function run(params) {
   // Puppeter Options
   const puppeteerOptions = {
     headless: true,
-    executablePath: "/usr/bin/google-chrome",
+    //executablePath: "/usr/bin/google-chrome",
     ignoreHTTPSErrors: true,
     args
   };
 
   // Puppeteer Cluster init and options
   const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_CONTEXT,
+    concurrency: Cluster.CONCURRENCY_PAGE,
     maxConcurrency: Number(params.workers) || 1,
     skipDuplicateUrls: true,
     puppeteerOptions,

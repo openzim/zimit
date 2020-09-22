@@ -10,16 +10,16 @@ ENV PROXY_HOST=localhost \
 
 RUN pip install pywb uwsgi warc2zim
 
-COPY --from=chrome /opt/google/chrome/ /opt/google/chrome/
+#COPY --from=chrome /opt/google/chrome/ /opt/google/chrome/
   
-COPY --from=chrome /app/ /browser/
+#COPY --from=chrome /app/ /browser/
 COPY --from=chrome /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=chrome /lib/x86_64-linux-gnu/libdbus* /lib/x86_64-linux-gnu/
-COPY --from=chrome /usr/bin/run_forever /usr/bin/
-COPY --from=chrome /usr/bin/wget /usr/bin/
-COPY --from=chrome /usr/bin/certutil /usr/bin/
+#COPY --from=chrome /usr/bin/run_forever /usr/bin/
+#COPY --from=chrome /usr/bin/wget /usr/bin/
+#COPY --from=chrome /usr/bin/certutil /usr/bin/
 
-RUN ln -s /opt/google/chrome/google-chrome /usr/bin/google-chrome
+#RUN ln -s /opt/google/chrome/google-chrome /usr/bin/google-chrome
 
 RUN useradd zimit --shell /bin/bash --create-home \
   && usermod -a -G sudo zimit \

@@ -2,3 +2,5 @@
 __pycache__
 *.zim
 *.egg-info/
+collections/
+node_modules/

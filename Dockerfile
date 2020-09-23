@@ -9,6 +9,8 @@ ENV PROXY_HOST=localhost \
     NO_SOCAT=1
 
 RUN pip install pywb uwsgi warc2zim
+# force reinstall of gevent to prevent segfault on uwsgi worker
+RUN pip install -U gevent
 
 #COPY --from=chrome /opt/google/chrome/ /opt/google/chrome/
   

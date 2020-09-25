@@ -1,5 +1,9 @@
-zimit
+Zimit
 =====
+
+[![CodeFactor](https://www.codefactor.io/repository/github/openzim/zimit/badge)](https://www.codefactor.io/repository/github/openzim/zimit)
+[![Docker Build Status](https://img.shields.io/docker/build/openzim/zimit)](https://hub.docker.com/r/openzim/zimit)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 This version of Zimit runs a single-site headless-Chrome based crawl in a Docker container and produces a ZIM of the crawled content.
 
@@ -52,3 +56,9 @@ The puppeteer-cluster provides monitoring output which is enabled by default and
 A first version of a generic HTTP scraper was created in 2016 during the [Wikimania Esino Lario Hackathon](https://wikimania2016.wikimedia.org/wiki/Programme/Kiwix-dedicated_Hackathon).
 
 That version is now considered outdated and [archived in `2016` branch](https://github.com/openzim/zimit/tree/2016).
+
+License
+-------
+
+[GPLv3](https://www.gnu.org/licenses/gpl-3.0) or later, see
+[LICENSE](LICENSE) for more details.

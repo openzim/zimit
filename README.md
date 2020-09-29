@@ -25,20 +25,21 @@ docker build -t openzim/zimit .
 
 The image accepts the following parameters:
 
-- `URL` - the url to be crawled (required)
+- `--url URL` - the url to be crawled (required)
 - `--workers N` - number of crawl workers to be run in parallel
 - `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
 - `--name` - Name of ZIM file (defaults to the hostname of the URL)
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
 - `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times.
+- `--scroll` - if set, will activate a simple auto-scroll behavior on each page.
 
 The following is an example usage. The `--cap-add` and `--shm-size` flags are needed to run Chrome in Docker.
 
 Example command:
 
 ```
-docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --shm-size=1gb openzim/zimit URL --name myzimfile --workers 2 --wait-until domcontentloaded
+docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN --shm-size=1gb openzim/zimit --url URL --name myzimfile --workers 2 --wait-until domcontentloaded
 ```
 
 The puppeteer-cluster provides monitoring output which is enabled by default and prints the crawl status to the Docker log.

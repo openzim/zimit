@@ -8,6 +8,11 @@ const HTML_TYPES = ["text/html", "application/xhtml", "application/xhtml+xml"];
 const WAIT_UNTIL_OPTS = ["load", "domcontentloaded", "networkidle0", "networkidle2"];
 const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36";
 
+// to ignore HTTPS error for HEAD check
+const HTTPS_AGENT = require("https").Agent({
+  rejectUnauthorized: false,
+});
+
 
 async function run(params) {
   // Chrome Flags, including proxy server
@@ -148,7 +153,9 @@ async function htmlCheck(url, capturePrefix) {
   try {
     const headers = {"User-Agent": CHROME_USER_AGENT};
 
-    const resp = await fetch(url, {method: "HEAD", headers});
+    const agent = url.startsWith("https:") ? HTTPS_AGENT : null;
+
+    const resp = await fetch(url, {method: "HEAD", headers, agent});
 
     if (resp.status >= 400) {
       console.log(`Skipping ${url}, invalid status ${resp.status}`);

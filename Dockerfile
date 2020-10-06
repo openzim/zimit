@@ -28,7 +28,9 @@ ADD package.json /app/
 
 RUN chown -R zimit /app
 
-RUN apt-get update && apt-get install -qqy fonts-stix
+RUN apt-get update && apt-get install --no-install-recommends -qqy fonts-stix \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN yarn install
 

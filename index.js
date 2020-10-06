@@ -43,7 +43,7 @@ async function run(params) {
   // params
   const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
 
-  console.log("Limit: " + limit);
+  //console.log("Limit: " + limit);
 
   // links crawled counter
   let numLinks = 0;
@@ -103,17 +103,6 @@ async function run(params) {
 
   await cluster.idle();
   await cluster.close();
-
-  const zimName = params.name || new URL(url).hostname;
-  const zimOutput = params.output || "/output";
-
-  const warc2zim = `warc2zim -a --url ${url} --name ${zimName} --output ${zimOutput} ./collections/capture/archive/\*.warc.gz`;
-
-  console.log("Running: " + warc2zim);
-
-  //await new Promise((resolve) => {
-  child_process.execSync(warc2zim, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
-  //});
 }
 
 
@@ -221,7 +210,7 @@ function sleep(time) {
 
 async function main() {
   const params = require('yargs')
-  .usage("zimit <command> [options]")
+  .usage("zimit [options] [warc2zim options]")
   .options({
     "url": {
       alias: "u",
@@ -299,10 +288,11 @@ async function main() {
     })
   .argv;
 
-  console.log("params", params);
+  runWarc2Zim(params, true);
 
   try {
     await run(params);
+    runWarc2Zim(params, false);
     process.exit(0);
   } catch(e) {
     console.error("Crawl failed, ZIM creation skipped");
@@ -310,6 +300,34 @@ async function main() {
     process.exit(1);
   }
 }
+
+function runWarc2Zim(params, checkOnly = true) {
+  const OPTS = ["_", "$0", "keep", "workers", "w", "waitUntil", "wait-until", "limit", "timeout", "scope", "exclude", "scroll"];
+
+  let zimOptsStr = "";
+
+  for (const key of Object.keys(params)) {
+    if (!OPTS.includes(key)) {
+      zimOptsStr += `--${key} ${params[key]} `;
+    }
+  }
+
+  const warc2zimCmd = "warc2zim " + zimOptsStr + (checkOnly ? "" : " ./collections/capture/archive/\*.warc.gz");
+
+  console.log("Running: " + warc2zimCmd);
+
+  const {status} = child_process.spawnSync(warc2zimCmd, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
+
+  if (status && !(checkOnly && status === 100)) {
+    console.error("Invalid warc2zim params, warc2zim exited with: " + status);
+    process.exit(status);
+  }
+}
+
+
+
+
+
 
 main();
 

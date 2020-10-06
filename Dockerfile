@@ -12,7 +12,7 @@ RUN pip install pywb uwsgi
 # force reinstall of gevent to prevent segfault on uwsgi worker
 RUN pip install -U gevent
 
-RUN pip install git+https://github.com/openzim/warc2zim@check-args-no-inputs#foo
+RUN pip install warc2zim==1.1.0
 
 COPY --from=chrome /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=chrome /lib/x86_64-linux-gnu/libdbus* /lib/x86_64-linux-gnu/

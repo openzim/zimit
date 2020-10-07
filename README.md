@@ -46,7 +46,7 @@ The image accepts the following parameters:
 - `--scroll` - if set, will activate a simple auto-scroll behavior on each page.
 
 The following is an example usage. The `--cap-add` and `--shm-size`
-flags are needed to run Chrome in Docker.
+flags are [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).
 
 Example command:
 

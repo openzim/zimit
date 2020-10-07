@@ -5,6 +5,13 @@ const fetch = require("node-fetch");
 const AbortController = require("abort-controller");
 
 const HTML_TYPES = ["text/html", "application/xhtml", "application/xhtml+xml"];
+const WAIT_UNTIL_OPTS = ["load", "domcontentloaded", "networkidle0", "networkidle2"];
+const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36";
+
+// to ignore HTTPS error for HEAD check
+const HTTPS_AGENT = require("https").Agent({
+  rejectUnauthorized: false,
+});
 
 
 async function run(params) {
@@ -36,34 +43,12 @@ async function run(params) {
   });
 
   // Maintain own seen list
-  let seenList = new Set();
-  const url = params._[0];
+  const seenList = new Set();
 
-  let { waitUntil, timeout, scope, limit, exclude } = params;
+  // params
+  const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
 
-  // waitUntil condition (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)
-  waitUntil = waitUntil || "load";
-
-  // Timeout per page
-  timeout = Number(timeout) || 60000;
-
-  // Scope for crawl, default to the domain of the URL
-  scope = scope || new URL(url).origin + "/";
-
-  // Limit number of pages captured
-  limit = Number(limit) || 0;
-
-  if (exclude) {
-    if (typeof(exclude) === "string") {
-      exclude = [new RegExp(exclude)];
-    } else {
-      exclude = exclude.map(e => new RegExp(e));
-    }
-  } else {
-    exclude = [];
-  }
-
-  console.log("Limit: " + limit);
+  //console.log("Limit: " + limit);
 
   // links crawled counter
   let numLinks = 0;
@@ -80,6 +65,14 @@ async function run(params) {
       await page.goto(url, {waitUntil, timeout});
     } catch (e) {
       console.log(`Load timeout for ${url}`);
+    }
+
+    if (scroll) {
+      try {
+        await Promise.race([page.evaluate(autoScroll), sleep(30000)]);
+      } catch (e) {
+        console.warn("Behavior Failed", e);
+      }
     }
 
     let results = null;
@@ -115,17 +108,6 @@ async function run(params) {
 
   await cluster.idle();
   await cluster.close();
-
-  const zimName = params.name || new URL(url).hostname;
-  const zimOutput = params.output || "/output";
-
-  const warc2zim = `warc2zim --url ${url} --name ${zimName} --output ${zimOutput} ./collections/capture/archive/\*.warc.gz`;
-
-  console.log("Running: " + warc2zim);
-
-  //await new Promise((resolve) => {
-  child_process.execSync(warc2zim, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
-  //});
 }
 
 
@@ -169,7 +151,11 @@ function shouldCrawl(scope, seenList, url, exclude) {
 
 async function htmlCheck(url, capturePrefix) {
   try {
-    const resp = await fetch(url, {method: "HEAD"});
+    const headers = {"User-Agent": CHROME_USER_AGENT};
+
+    const agent = url.startsWith("https:") ? HTTPS_AGENT : null;
+
+    const resp = await fetch(url, {method: "HEAD", headers, agent});
 
     if (resp.status >= 400) {
       console.log(`Skipping ${url}, invalid status ${resp.status}`);
@@ -193,7 +179,7 @@ async function htmlCheck(url, capturePrefix) {
     console.log(`Direct capture: ${capturePrefix}${url}`);
     const abort = new AbortController();
     const signal = abort.signal;
-    const resp2 = await fetch(capturePrefix + url, {signal});
+    const resp2 = await fetch(capturePrefix + url, {signal, headers});
     abort.abort();
 
     return false;
@@ -205,12 +191,115 @@ async function htmlCheck(url, capturePrefix) {
 }
 
 
+async function autoScroll() {
+  const canScrollMore = () =>
+    self.scrollY + self.innerHeight <
+    Math.max(
+      self.document.body.scrollHeight,
+      self.document.body.offsetHeight,
+      self.document.documentElement.clientHeight,
+      self.document.documentElement.scrollHeight,
+      self.document.documentElement.offsetHeight
+    );
+
+  const scrollOpts = { top: 250, left: 0, behavior: 'auto' };
+
+  while (canScrollMore()) {
+    self.scrollBy(scrollOpts);
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+}
+
+function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+
 async function main() {
-  const params = require('yargs').argv;
-  console.log(params);
+  const params = require('yargs')
+  .usage("zimit [options] [warc2zim options]")
+  .options({
+    "url": {
+      alias: "u",
+      describe: "The URL to start crawling from and main page for ZIM",
+      demandOption: true,
+      type: "string",
+    },
+
+    "workers": {
+      alias: "w",
+      describe: "The number of workers to run in parallel",
+      demandOption: false,
+      default: 1,
+      type: "number",
+    },
+
+    "waitUntil": {
+      describe: "Puppeteer page.goto() condition to wait for before continuing",
+      default: "load",
+    },
+
+    "limit": {
+      describe: "Limit crawl to this number of pages",
+      default: 0,
+      type: "number",
+    },
+
+    "timeout": {
+      describe: "Timeout for each page to load (in millis)",
+      default: 30000,
+      type: "number",
+    },
+
+    "scope": {
+      describe: "The scope of current page that should be included in the crawl (defaults to the domain of URL)",
+    },
+
+    "exclude": {
+      describe: "Regex of URLs that should be excluded from the crawl."
+    },
+
+    "scroll": {
+      describe: "If set, will autoscroll to bottom of the page",
+      type: "boolean",
+      default: false,
+    }}).check((argv, option) => {
+      // Scope for crawl, default to the domain of the URL
+      const url = new URL(argv.url);
+
+      if (url.protocol !== "http:" && url.protocol != "https:") {
+        throw new Error("URL must start with http:// or https://");
+      }
+
+      if (!argv.scope) {
+        argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
+      }
+
+      // waitUntil condition must be: load, domcontentloaded, networkidle0, networkidle2
+      // (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)
+      if (!WAIT_UNTIL_OPTS.includes(argv.waitUntil)) {
+        throw new Error("Invalid waitUntil, must be one of: " + WAIT_UNTIL_OPTS.join(","));
+      }
+
+      if (argv.exclude) {
+        if (typeof(argv.exclude) === "string") {
+          argv.exclude = [new RegExp(argv.exclude)];
+        } else {
+          argv.exclude = argv.exclude.map(e => new RegExp(e));
+        }
+      } else {
+        argv.exclude = [];
+      }
+
+      return true;
+    })
+  .argv;
+
+  runWarc2Zim(params, true);
 
   try {
     await run(params);
+    runWarc2Zim(params, false);
     process.exit(0);
   } catch(e) {
     console.error("Crawl failed, ZIM creation skipped");
@@ -218,6 +307,34 @@ async function main() {
     process.exit(1);
   }
 }
+
+function runWarc2Zim(params, checkOnly = true) {
+  const OPTS = ["_", "$0", "keep", "workers", "w", "waitUntil", "wait-until", "limit", "timeout", "scope", "exclude", "scroll"];
+
+  let zimOptsStr = "";
+
+  for (const key of Object.keys(params)) {
+    if (!OPTS.includes(key)) {
+      zimOptsStr += `--${key} ${params[key]} `;
+    }
+  }
+
+  const warc2zimCmd = "warc2zim " + zimOptsStr + (checkOnly ? "" : " ./collections/capture/archive/\*.warc.gz");
+
+  console.log("Running: " + warc2zimCmd);
+
+  const {status} = child_process.spawnSync(warc2zimCmd, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
+
+  if (status && !(checkOnly && status === 100)) {
+    console.error("Invalid warc2zim params, warc2zim exited with: " + status);
+    process.exit(status);
+  }
+}
+
+
+
+
+
 
 main();
 

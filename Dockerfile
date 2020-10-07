@@ -2,6 +2,11 @@ FROM oldwebtoday/chrome:84 as chrome
 
 FROM nikolaik/python-nodejs
 
+RUN apt-get update -y \
+    && apt-get install --no-install-recommends -qqy fonts-stix locales-all \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV PROXY_HOST=localhost \
     PROXY_PORT=8080 \
     PROXY_CA_URL=http://wsgiprox/download/pem \
@@ -27,10 +32,6 @@ WORKDIR /app
 ADD package.json /app/
 
 RUN chown -R zimit /app
-
-RUN apt-get update && apt-get install --no-install-recommends -qqy fonts-stix \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
 
 RUN yarn install
 

@@ -1,6 +1,6 @@
 FROM oldwebtoday/chrome:84 as chrome
 
-FROM nikolaik/python-nodejs
+FROM nikolaik/python-nodejs:python3.8-nodejs14
 
 RUN apt-get update -y \
     && apt-get install --no-install-recommends -qqy fonts-stix locales-all \
@@ -13,9 +13,7 @@ ENV PROXY_HOST=localhost \
     PROXY_CA_FILE=/tmp/proxy-ca.pem \
     NO_SOCAT=1
 
-RUN pip install pywb uwsgi
-# force reinstall of gevent to prevent segfault on uwsgi worker
-RUN pip install -U gevent
+RUN pip install gevent>=20.9.0 pywb uwsgi
 
 RUN pip install warc2zim==1.1.0
 

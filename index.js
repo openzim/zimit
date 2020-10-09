@@ -332,7 +332,7 @@ function runWarc2Zim(params, checkOnly = true) {
           break;
 
         case "object":
-          zimOptsStr += params[key].join(` --${key} `);
+          zimOptsStr += params[key].map(x => `"${x}"`).join(` --${key} `) + " ";
           break;
       }
     }

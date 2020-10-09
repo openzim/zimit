@@ -110,6 +110,7 @@ async function run(params) {
   await cluster.close();
 
   // extra wait for all resources to land into WARCs
+  console.log("Waiting 30s to ensure WARCs are finished");
   await sleep(30000);
 }
 
@@ -325,7 +326,7 @@ function runWarc2Zim(params, checkOnly = true) {
       zimOptsStr += (key.length === 1 ? "-" : "--") + key + " ";
 
       if (typeof(params[key]) === "string") {
-        zimOptsStr += params[key] + " ";
+        zimOptsStr += `"${params[key]}" `;
       }
     }
   }

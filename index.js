@@ -325,8 +325,15 @@ function runWarc2Zim(params, checkOnly = true) {
     if (!OPTS.includes(key)) {
       zimOptsStr += (key.length === 1 ? "-" : "--") + key + " ";
 
-      if (typeof(params[key]) === "string") {
-        zimOptsStr += `"${params[key]}" `;
+      switch (typeof(params[key])) {
+        case "string":
+        case "number":
+          zimOptsStr += `"${params[key]}" `;
+          break;
+
+        case "object":
+          zimOptsStr += params[key].join(` --${key} `);
+          break;
       }
     }
   }

@@ -37,6 +37,7 @@ ADD config.yaml /app/
 ADD uwsgi.ini /app/
 ADD run.sh /app/
 ADD index.js /app/
+RUN ln -s /app/run.sh /usr/bin/zimit
 
-ENTRYPOINT ["/app/run.sh"]
+CMD ["zimit"]
 

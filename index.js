@@ -108,6 +108,9 @@ async function run(params) {
 
   await cluster.idle();
   await cluster.close();
+
+  // extra wait for all resources to land into WARCs
+  await sleep(30000);
 }
 
 
@@ -247,7 +250,7 @@ async function main() {
 
     "timeout": {
       describe: "Timeout for each page to load (in millis)",
-      default: 30000,
+      default: 90000,
       type: "number",
     },
 
@@ -263,6 +266,7 @@ async function main() {
       describe: "If set, will autoscroll to bottom of the page",
       type: "boolean",
       default: false,
+
     }}).check((argv, option) => {
       // Scope for crawl, default to the domain of the URL
       const url = new URL(argv.url);

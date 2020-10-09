@@ -108,6 +108,10 @@ async function run(params) {
 
   await cluster.idle();
   await cluster.close();
+
+  // extra wait for all resources to land into WARCs
+  console.log("Waiting 30s to ensure WARCs are finished");
+  await sleep(30000);
 }
 
 
@@ -247,7 +251,7 @@ async function main() {
 
     "timeout": {
       describe: "Timeout for each page to load (in millis)",
-      default: 30000,
+      default: 90000,
       type: "number",
     },
 
@@ -263,6 +267,7 @@ async function main() {
       describe: "If set, will autoscroll to bottom of the page",
       type: "boolean",
       default: false,
+
     }}).check((argv, option) => {
       // Scope for crawl, default to the domain of the URL
       const url = new URL(argv.url);
@@ -270,6 +275,9 @@ async function main() {
       if (url.protocol !== "http:" && url.protocol != "https:") {
         throw new Error("URL must start with http:// or https://");
       }
+
+      // ensure valid url is used (adds trailing slash if missing)
+      argv.url = url.href;
 
       if (!argv.scope) {
         argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
@@ -309,13 +317,17 @@ async function main() {
 }
 
 function runWarc2Zim(params, checkOnly = true) {
-  const OPTS = ["_", "$0", "keep", "workers", "w", "waitUntil", "wait-until", "limit", "timeout", "scope", "exclude", "scroll"];
+  const OPTS = ["_", "u", "$0", "keep", "workers", "w", "waitUntil", "wait-until", "limit", "timeout", "scope", "exclude", "scroll"];
 
   let zimOptsStr = "";
 
   for (const key of Object.keys(params)) {
     if (!OPTS.includes(key)) {
-      zimOptsStr += `--${key} ${params[key]} `;
+      zimOptsStr += (key.length === 1 ? "-" : "--") + key + " ";
+
+      if (typeof(params[key]) === "string") {
+        zimOptsStr += `"${params[key]}" `;
+      }
     }
   }
 
@@ -325,7 +337,7 @@ function runWarc2Zim(params, checkOnly = true) {
 
   const {status} = child_process.spawnSync(warc2zimCmd, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
 
-  if (status && !(checkOnly && status === 100)) {
+  if ((!checkOnly && status) || (checkOnly && status !== 100)) {
     console.error("Invalid warc2zim params, warc2zim exited with: " + status);
     process.exit(status);
   }

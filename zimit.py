@@ -99,6 +99,7 @@ def zimit(args=None):
     os.chmod(temp_root_dir, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
 
     if not zimit_args.keep:
+
         def cleanup():
             print("")
             print("----------")
@@ -111,16 +112,20 @@ def zimit(args=None):
     print("")
     print("----------")
     print("pywb init")
-    subprocess.run(["wb-manager", "init", "capture"], check=True, cwd=temp_root_dir)
+    subprocess.run(
+        ["wb-manager", "init", "capture"], check=True, cwd=temp_root_dir
+    )  # nosec
 
-    subprocess.Popen(["redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL)
+    subprocess.Popen(
+        ["redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL
+    )  # nosec
 
     subprocess.Popen(
         ["uwsgi", os.getcwd() + "/uwsgi.ini"],
         cwd=temp_root_dir,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
-    )
+    )  # nosec
 
     cmd_args = get_node_cmd_line(zimit_args)
     cmd_line = " ".join(cmd_args)
@@ -129,9 +134,11 @@ def zimit(args=None):
     print("----------")
     print("running zimit driver: " + cmd_line)
     su_cmd = ["su", "zimit", "-c", cmd_line]
-    subprocess.run(su_cmd, check=True)
+    subprocess.run(su_cmd, check=True)  # nosec
 
-    warc_files = glob.glob(os.path.join(temp_root_dir, "collections/capture/archive/*.warc.gz"))
+    warc_files = glob.glob(
+        os.path.join(temp_root_dir, "collections/capture/archive/*.warc.gz")
+    )
     print("")
     print("----------")
     print("Processing {0} WARC files to ZIM".format(len(warc_files)))
@@ -156,7 +163,7 @@ def get_node_cmd_line(args):
         value = getattr(args, arg)
         if value:
             node_cmd.append("--" + arg)
-            if type(value) != bool:
+            if not isinstance(value, bool):
                 node_cmd.append(str(value))
 
     return node_cmd

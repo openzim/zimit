@@ -1,7 +1,7 @@
 {
-  "name": "zimit",
+  "name": "zimit-crawler",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "zimit-crawler",
   "repository": "https://github.com/openzim/zimit",
   "author": "Ilya Kreymer <ikreymer@gmail.com>",
   "license": "MIT",

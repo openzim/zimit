@@ -28,7 +28,8 @@ async function run(params) {
   // Chrome Flags, including proxy server
   const args = [
     "--no-xshm", // needed for Chrome >80 (check if puppeteer adds automatically)
-    `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`
+    `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+    "--no-sandbox"
   ];
 
   // prefix for direct capture via pywb
@@ -312,6 +313,8 @@ async function main() {
       return true;
     })
   .argv;
+
+  console.log("Exclusions Regexes: ", params.exclude);
 
   try {
     await run(params);

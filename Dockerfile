@@ -22,16 +22,9 @@ RUN pip install git+https://github.com/webrecorder/pywb@patch-work
 COPY --from=chrome /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=chrome /lib/x86_64-linux-gnu/libdbus* /lib/x86_64-linux-gnu/
 
-RUN useradd zimit --shell /bin/bash --create-home \
-  && usermod -a -G sudo zimit \
-  && echo 'ALL ALL = (ALL) NOPASSWD: ALL' >> /etc/sudoers \
-  && echo 'zimit:secret' | chpasswd
-
 WORKDIR /app
 
 ADD package.json /app/
-
-RUN chown -R zimit /app
 
 RUN yarn install
 

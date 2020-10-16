@@ -96,7 +96,6 @@ def zimit(args=None):
 
     # make temp dir for this crawl and make it all writeable+all readable+all exec
     temp_root_dir = tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp")
-    os.chmod(temp_root_dir, stat.S_IROTH | stat.S_IWOTH | stat.S_IXOTH)
 
     if not zimit_args.keep:
 
@@ -133,8 +132,7 @@ def zimit(args=None):
     print("")
     print("----------")
     print("running zimit driver: " + cmd_line)
-    su_cmd = ["su", "zimit", "-c", cmd_line]
-    subprocess.run(su_cmd, check=True)  # nosec
+    subprocess.run(cmd_args, check=True)  # nosec
 
     warc_files = glob.glob(
         os.path.join(temp_root_dir, "collections/capture/archive/*.warc.gz")

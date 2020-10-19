@@ -10,10 +10,8 @@ and then calls the Node based driver
 
 from argparse import ArgumentParser
 import os
-import stat
 import tempfile
 import subprocess
-import pwd
 import atexit
 import shutil
 import glob
@@ -112,15 +110,15 @@ def zimit(args=None):
     print("----------")
     print("pywb init")
     subprocess.run(
-        ["wb-manager", "init", "capture"], check=True, cwd=temp_root_dir
+        ["/usr/bin/env", "wb-manager", "init", "capture"], check=True, cwd=temp_root_dir
     )  # nosec
 
     subprocess.Popen(
-        ["redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL
+        ["/usr/bin/env", "redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL
     )  # nosec
 
     subprocess.Popen(
-        ["uwsgi", os.getcwd() + "/uwsgi.ini"],
+        ["/usr/bin/env", "uwsgi", os.getcwd() + "/uwsgi.ini"],
         cwd=temp_root_dir,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -132,7 +130,7 @@ def zimit(args=None):
     print("")
     print("----------")
     print("running zimit driver: " + cmd_line)
-    subprocess.run(cmd_args, check=True)  # nosec
+    subprocess.run(cmd_args, check=True)
 
     warc_files = glob.glob(
         os.path.join(temp_root_dir, "collections/capture/archive/*.warc.gz")
@@ -147,7 +145,7 @@ def zimit(args=None):
 
 
 def get_node_cmd_line(args):
-    node_cmd = ["node", "crawler.js"]
+    node_cmd = ["/usr/bin/env", "node", "crawler.js"]
     for arg in [
         "url",
         "workers",

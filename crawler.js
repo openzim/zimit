@@ -261,13 +261,13 @@ async function main() {
     },
 
     "timeout": {
-      describe: "Timeout for each page to load (in millis)",
-      default: 90000,
+      describe: "Timeout for each page to load (in seconds)",
+      default: 90,
       type: "number",
     },
 
     "scope": {
-      describe: "The scope of current page that should be included in the crawl (defaults to the domain of URL)",
+      describe: "The scope of current page that should be included in the crawl (defaults to the immediate directory of URL)",
     },
 
     "exclude": {
@@ -293,6 +293,8 @@ async function main() {
       if (!argv.scope) {
         argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
       }
+
+      argv.timeout *= 1000;
 
       // waitUntil condition must be: load, domcontentloaded, networkidle0, networkidle2
       // (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)

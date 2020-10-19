@@ -17,6 +17,7 @@ import shutil
 import glob
 import signal
 import sys
+from pathlib import Path
 
 from warc2zim.main import warc2zim
 
@@ -33,6 +34,7 @@ def zimit(args=None):
     parser.add_argument(
         "--waitUntil",
         help="Puppeteer page.goto() condition to wait for before continuing",
+        choices=["load", "domcontentloaded", "networkidle0", "networkidle2"],
         default="load",
     )
 
@@ -42,14 +44,14 @@ def zimit(args=None):
 
     parser.add_argument(
         "--timeout",
-        help="Timeout for each page to load (in millis)",
+        help="Timeout for each page to load (in seconds)",
         type=int,
-        default=90000,
+        default=90,
     )
 
     parser.add_argument(
         "--scope",
-        help="The scope of current page that should be included in the crawl (defaults to the domain of URL)",
+        help="The scope of current page that should be included in the crawl (defaults to the immediate directory of the URL)",
     )
 
     parser.add_argument(
@@ -92,8 +94,8 @@ def zimit(args=None):
         print("Exiting, invalid warc2zim params")
         return 2
 
-    # make temp dir for this crawl and make it all writeable+all readable+all exec
-    temp_root_dir = tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp")
+    # make temp dir for this crawl
+    temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
 
@@ -132,17 +134,16 @@ def zimit(args=None):
     print("running zimit driver: " + cmd_line)
     subprocess.run(cmd_args, check=True)
 
-    warc_files = glob.glob(
-        os.path.join(temp_root_dir, "collections/capture/archive/*.warc.gz")
-    )
+    warc_files = temp_root_dir / "collections" / "capture" / "archive"
+    warc2zim_args.append(str(warc_files))
+
+    num_files = sum(1 for e in warc_files.iterdir())
+
     print("")
     print("----------")
-    print("Processing {0} WARC files to ZIM".format(len(warc_files)))
+    print("Processing {0} WARC files to ZIM".format(num_files))
 
-    res = warc2zim(warc2zim_args + warc_files)
-
-    return res
-
+    return warc2zim(warc2zim_args)
 
 def get_node_cmd_line(args):
     node_cmd = ["/usr/bin/env", "node", "crawler.js"]

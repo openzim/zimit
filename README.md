@@ -43,7 +43,7 @@ The image accepts the following parameters:
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
 - `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times.
-- `--scroll` - if set, will activate a simple auto-scroll behavior on each page.
+- `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
 
 The following is an example usage. The `--cap-add` and `--shm-size`
 flags are [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).

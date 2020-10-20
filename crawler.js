@@ -13,12 +13,23 @@ const HTTPS_AGENT = require("https").Agent({
   rejectUnauthorized: false,
 });
 
+process.once('SIGINT', (code) => {
+  console.log('SIGINT received, exiting');
+  process.exit(1);
+});
+
+process.once('SIGTERM', (code) => {
+  console.log('SIGTERM received, exiting');
+  process.exit(1);
+});
+
 
 async function run(params) {
   // Chrome Flags, including proxy server
   const args = [
     "--no-xshm", // needed for Chrome >80 (check if puppeteer adds automatically)
-    `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`
+    `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
+    "--no-sandbox"
   ];
 
   // prefix for direct capture via pywb
@@ -221,11 +232,11 @@ function sleep(time) {
 
 async function main() {
   const params = require('yargs')
-  .usage("zimit [options] [warc2zim options]")
+  .usage("browsertrix-mini [options]")
   .options({
     "url": {
       alias: "u",
-      describe: "The URL to start crawling from and main page for ZIM",
+      describe: "The URL to start crawling from",
       demandOption: true,
       type: "string",
     },
@@ -250,13 +261,13 @@ async function main() {
     },
 
     "timeout": {
-      describe: "Timeout for each page to load (in millis)",
-      default: 90000,
+      describe: "Timeout for each page to load (in seconds)",
+      default: 90,
       type: "number",
     },
 
     "scope": {
-      describe: "The scope of current page that should be included in the crawl (defaults to the domain of URL)",
+      describe: "The scope of current page that should be included in the crawl (defaults to the immediate directory of URL)",
     },
 
     "exclude": {
@@ -283,6 +294,8 @@ async function main() {
         argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
       }
 
+      argv.timeout *= 1000;
+
       // waitUntil condition must be: load, domcontentloaded, networkidle0, networkidle2
       // (see: https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options)
       if (!WAIT_UNTIL_OPTS.includes(argv.waitUntil)) {
@@ -303,57 +316,17 @@ async function main() {
     })
   .argv;
 
-  runWarc2Zim(params, true);
+  console.log("Exclusions Regexes: ", params.exclude);
 
   try {
     await run(params);
-    runWarc2Zim(params, false);
     process.exit(0);
   } catch(e) {
-    console.error("Crawl failed, ZIM creation skipped");
+    console.error("Crawl failed");
     console.error(e);
     process.exit(1);
   }
 }
-
-function runWarc2Zim(params, checkOnly = true) {
-  const OPTS = ["_", "u", "$0", "keep", "workers", "w", "waitUntil", "wait-until", "limit", "timeout", "scope", "exclude", "scroll"];
-
-  let zimOptsStr = "";
-
-  for (const key of Object.keys(params)) {
-    if (!OPTS.includes(key)) {
-      zimOptsStr += (key.length === 1 ? "-" : "--") + key + " ";
-
-      switch (typeof(params[key])) {
-        case "string":
-        case "number":
-          zimOptsStr += `"${params[key]}" `;
-          break;
-
-        case "object":
-          zimOptsStr += params[key].map(x => `"${x}"`).join(` --${key} `) + " ";
-          break;
-      }
-    }
-  }
-
-  const warc2zimCmd = "warc2zim " + zimOptsStr + (checkOnly ? "" : " ./collections/capture/archive/\*.warc.gz");
-
-  console.log("Running: " + warc2zimCmd);
-
-  const {status} = child_process.spawnSync(warc2zimCmd, {shell: "/bin/bash", stdio: "inherit", stderr: "inherit"});
-
-  if ((!checkOnly && status) || (checkOnly && status !== 100)) {
-    console.error("Invalid warc2zim params, warc2zim exited with: " + status);
-    process.exit(status);
-  }
-}
-
-
-
-
-
 
 main();
 

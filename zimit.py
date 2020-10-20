@@ -102,7 +102,7 @@ def zimit(args=None):
         def cleanup():
             print("")
             print("----------")
-            print("Cleanup, removing temp dir: " + temp_root_dir)
+            print("Cleanup, removing temp dir: " + str(temp_root_dir))
             shutil.rmtree(temp_root_dir)
 
         atexit.register(cleanup)

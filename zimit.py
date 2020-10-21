@@ -86,6 +86,10 @@ def zimit(args=None):
         warc2zim_args.append("--url")
         warc2zim_args.append(zimit_args.url)
 
+    subprocess.Popen(["/usr/bin/env", "python", "-m", "http.server", "9990"])
+    warc2zim_args.append("-r")
+    warc2zim_args.append("http://localhost:9990/")
+
     print("----------")
     print("Testing warc2zim args")
     print("Running: warc2zim " + " ".join(warc2zim_args))

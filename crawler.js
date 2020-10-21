@@ -1,4 +1,5 @@
-const puppeteer = require("puppeteer");
+const fs = require("fs");
+const puppeteer = require("puppeteer-core");
 const { Cluster } = require("puppeteer-cluster");
 const child_process = require("child_process");
 const fetch = require("node-fetch");
@@ -24,30 +25,42 @@ process.once('SIGTERM', (code) => {
 });
 
 
+const autoplayScript = fs.readFileSync("./autoplay.js", "utf-8");
+
+
+// prefix for direct capture via pywb
+const capturePrefix = `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}/capture/record/id_/`;
+const headers = {"User-Agent": CHROME_USER_AGENT};
+
+
 async function run(params) {
   // Chrome Flags, including proxy server
   const args = [
     "--no-xshm", // needed for Chrome >80 (check if puppeteer adds automatically)
     `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-    "--no-sandbox"
+    "--no-sandbox",
+    "--disable-background-media-suspend",
+    "--autoplay-policy=no-user-gesture-required",
   ];
-
-  // prefix for direct capture via pywb
-  const capturePrefix = `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}/capture/record/id_/`;
 
   // Puppeter Options
   const puppeteerOptions = {
     headless: true,
-    //executablePath: "/usr/bin/google-chrome",
+    executablePath: "/opt/google/chrome/google-chrome",
     ignoreHTTPSErrors: true,
     args
   };
+
+  // params
+  const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
 
   // Puppeteer Cluster init and options
   const cluster = await Cluster.launch({
     concurrency: Cluster.CONCURRENCY_PAGE,
     maxConcurrency: Number(params.workers) || 1,
     skipDuplicateUrls: true,
+    // total timeout for cluster
+    timeout: timeout * 2,
     puppeteerOptions,
     puppeteer,
     monitor: true
@@ -55,9 +68,6 @@ async function run(params) {
 
   // Maintain own seen list
   const seenList = new Set();
-
-  // params
-  const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
 
   //console.log("Limit: " + limit);
 
@@ -72,10 +82,44 @@ async function run(params) {
       return;
     }
 
+    //page.on('console', message => console.log(`${message.type()} ${message.text()}`));
+    //page.on('pageerror', message => console.warn(message));
+    //page.on('error', message => console.warn(message));
+    //page.on('requestfailed', message => console.warn(message._failureText));
+    const mediaResults = [];
+
+    await page.exposeFunction('__crawler_queueUrls', (url) => {
+      mediaResults.push(directCapture(url));
+    });
+
+    let waitForVideo = false;
+
+    await page.exposeFunction('__crawler_autoplayLoad', (url) => {
+      console.log("*** Loading autoplay URL: " + url);
+      waitForVideo = true;
+    });
+
+    try {
+      await page.evaluateOnNewDocument(autoplayScript);
+    } catch(e) {
+      console.log(e);
+    }
+
     try {
       await page.goto(url, {waitUntil, timeout});
     } catch (e) {
       console.log(`Load timeout for ${url}`);
+    }
+
+    try {
+      await Promise.all(mediaResults);
+    } catch (e) {
+      console.log(`Error loading media URLs`, e);
+    }
+
+    if (waitForVideo) {
+      console.log("Extra wait 15s for video loading");
+      await sleep(15000);
     }
 
     if (scroll) {
@@ -166,8 +210,6 @@ function shouldCrawl(scope, seenList, url, exclude) {
 
 async function htmlCheck(url, capturePrefix) {
   try {
-    const headers = {"User-Agent": CHROME_USER_AGENT};
-
     const agent = url.startsWith("https:") ? HTTPS_AGENT : null;
 
     const resp = await fetch(url, {method: "HEAD", headers, agent});
@@ -191,11 +233,7 @@ async function htmlCheck(url, capturePrefix) {
     }
 
     // capture directly
-    console.log(`Direct capture: ${capturePrefix}${url}`);
-    const abort = new AbortController();
-    const signal = abort.signal;
-    const resp2 = await fetch(capturePrefix + url, {signal, headers});
-    abort.abort();
+    await directCapture(url);
 
     return false;
   } catch(e) {
@@ -204,6 +242,15 @@ async function htmlCheck(url, capturePrefix) {
     return true;
   }
 }
+
+async function directCapture(url) {
+  console.log(`Direct capture: ${capturePrefix}${url}`);
+  const abort = new AbortController();
+  const signal = abort.signal;
+  const resp2 = await fetch(capturePrefix + url, {signal, headers});
+  abort.abort();
+}
+
 
 
 async function autoScroll() {
@@ -317,6 +364,7 @@ async function main() {
   .argv;
 
   console.log("Exclusions Regexes: ", params.exclude);
+  console.log("Scope: ", params.scope);
 
   try {
     await run(params);

@@ -7,6 +7,7 @@ const AbortController = require("abort-controller");
 
 const HTML_TYPES = ["text/html", "application/xhtml", "application/xhtml+xml"];
 const WAIT_UNTIL_OPTS = ["load", "domcontentloaded", "networkidle0", "networkidle2"];
+const NEW_CONTEXT_OPTS = ["page", "session", "browser"];
 const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36";
 
 // to ignore HTTPS error for HEAD check
@@ -52,11 +53,27 @@ async function run(params) {
   };
 
   // params
-  const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
+  const { url, waitUntil, timeout, scope, limit, exclude, scroll, newContext } = params;
+
+  let concurrency = Cluster.CONCURRENCY_PAGE;
+
+  switch (newContext) {
+    case "page":
+      concurrency = Cluster.CONCURRENCY_PAGE;
+      break;
+
+    case "session":
+      concurrency = Cluster.CONCURRENCY_CONTEXT;
+      break;
+
+    case "browser":
+      concurrency = Cluster.CONCURRENCY_BROWSER;
+      break;
+  }
 
   // Puppeteer Cluster init and options
   const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_PAGE,
+    concurrency,
     maxConcurrency: Number(params.workers) || 1,
     skipDuplicateUrls: true,
     // total timeout for cluster
@@ -192,8 +209,18 @@ function shouldCrawl(scope, seenList, url, exclude) {
     return false;
   }
 
-  // if scope is provided, skip urls not in scope
-  if (scope && !url.startsWith(scope)) {
+  let inScope = false;
+
+  // check scopes
+  for (const s of scope) {
+    if (s.exec(url)) {
+      inScope = true;
+      break;
+    }
+  }
+
+  if (!inScope) {
+    //console.log(`Not in scope ${url} ${scope}`);
     return false;
   }
 
@@ -296,6 +323,12 @@ async function main() {
       type: "number",
     },
 
+    "newContext": {
+      describe: "The context for each new capture, can be a new: page, session or browser.",
+      default: "page",
+      type: "string"
+    },
+
     "waitUntil": {
       describe: "Puppeteer page.goto() condition to wait for before continuing",
       default: "load",
@@ -314,11 +347,11 @@ async function main() {
     },
 
     "scope": {
-      describe: "The scope of current page that should be included in the crawl (defaults to the immediate directory of URL)",
+      describe: "Regex of page URLs that should be included in the crawl (defaults to the immediate directory of URL)",
     },
 
     "exclude": {
-      describe: "Regex of URLs that should be excluded from the crawl."
+      describe: "Regex of page URLs that should be excluded from the crawl."
     },
 
     "scroll": {
@@ -338,7 +371,8 @@ async function main() {
       argv.url = url.href;
 
       if (!argv.scope) {
-        argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
+        //argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
+        argv.scope = [new RegExp("^" + rxEscape(url.href.slice(0, url.href.lastIndexOf("/") + 1)))];
       }
 
       argv.timeout *= 1000;
@@ -349,6 +383,11 @@ async function main() {
         throw new Error("Invalid waitUntil, must be one of: " + WAIT_UNTIL_OPTS.join(","));
       }
 
+      if (!NEW_CONTEXT_OPTS.includes(argv.newContext)) {
+        throw new Error("Invalid newContext, must be one of: " + NEW_CONTEXT_OPTS.join(","));
+      }
+
+      // Support one or multiple exclude
       if (argv.exclude) {
         if (typeof(argv.exclude) === "string") {
           argv.exclude = [new RegExp(argv.exclude)];
@@ -359,12 +398,23 @@ async function main() {
         argv.exclude = [];
       }
 
+      // Support one or multiple scopes
+      if (argv.scope) {
+        if (typeof(argv.scope) === "string") {
+          argv.scope = [new RegExp(argv.scope)];
+        } else {
+          argv.scope = argv.scope.map(e => new RegExp(e));
+        }
+      } else {
+        argv.scope = [];
+      }
+
       return true;
     })
   .argv;
 
   console.log("Exclusions Regexes: ", params.exclude);
-  console.log("Scope: ", params.scope);
+  console.log("Scope Regexes: ", params.scope);
 
   try {
     await run(params);
@@ -375,6 +425,11 @@ async function main() {
     process.exit(1);
   }
 }
+
+function rxEscape(string) {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
 
 main();
 

@@ -34,7 +34,6 @@ ADD uwsgi.ini /app/
 ADD zimit.py /app/
 ADD crawler.js /app/
 ADD autoplay.js /app/
-ADD sw.js /app/
 
 RUN ln -s /app/zimit.py /usr/bin/zimit
 

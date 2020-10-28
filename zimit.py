@@ -35,7 +35,7 @@ def zimit(args=None):
         "--newContext",
         help="The context for each new capture, can be a new: page, session or browser.",
         choices=["page", "session", "browser"],
-        default="session",
+        default="page",
     )
 
     parser.add_argument(

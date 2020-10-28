@@ -1,4 +1,5 @@
-const puppeteer = require("puppeteer");
+const fs = require("fs");
+const puppeteer = require("puppeteer-core");
 const { Cluster } = require("puppeteer-cluster");
 const child_process = require("child_process");
 const fetch = require("node-fetch");
@@ -6,6 +7,7 @@ const AbortController = require("abort-controller");
 
 const HTML_TYPES = ["text/html", "application/xhtml", "application/xhtml+xml"];
 const WAIT_UNTIL_OPTS = ["load", "domcontentloaded", "networkidle0", "networkidle2"];
+const NEW_CONTEXT_OPTS = ["page", "session", "browser"];
 const CHROME_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36";
 
 // to ignore HTTPS error for HEAD check
@@ -24,30 +26,58 @@ process.once('SIGTERM', (code) => {
 });
 
 
+const autoplayScript = fs.readFileSync("./autoplay.js", "utf-8");
+
+
+// prefix for direct capture via pywb
+const capturePrefix = `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}/capture/record/id_/`;
+const headers = {"User-Agent": CHROME_USER_AGENT};
+
+
 async function run(params) {
   // Chrome Flags, including proxy server
   const args = [
     "--no-xshm", // needed for Chrome >80 (check if puppeteer adds automatically)
     `--proxy-server=http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}`,
-    "--no-sandbox"
+    "--no-sandbox",
+    "--disable-background-media-suspend",
+    "--autoplay-policy=no-user-gesture-required",
   ];
-
-  // prefix for direct capture via pywb
-  const capturePrefix = `http://${process.env.PROXY_HOST}:${process.env.PROXY_PORT}/capture/record/id_/`;
 
   // Puppeter Options
   const puppeteerOptions = {
     headless: true,
-    //executablePath: "/usr/bin/google-chrome",
+    executablePath: "/opt/google/chrome/google-chrome",
     ignoreHTTPSErrors: true,
     args
   };
 
+  // params
+  const { url, waitUntil, timeout, scope, limit, exclude, scroll, newContext } = params;
+
+  let concurrency = Cluster.CONCURRENCY_PAGE;
+
+  switch (newContext) {
+    case "page":
+      concurrency = Cluster.CONCURRENCY_PAGE;
+      break;
+
+    case "session":
+      concurrency = Cluster.CONCURRENCY_CONTEXT;
+      break;
+
+    case "browser":
+      concurrency = Cluster.CONCURRENCY_BROWSER;
+      break;
+  }
+
   // Puppeteer Cluster init and options
   const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_PAGE,
+    concurrency,
     maxConcurrency: Number(params.workers) || 1,
     skipDuplicateUrls: true,
+    // total timeout for cluster
+    timeout: timeout * 2,
     puppeteerOptions,
     puppeteer,
     monitor: true
@@ -55,9 +85,6 @@ async function run(params) {
 
   // Maintain own seen list
   const seenList = new Set();
-
-  // params
-  const { url, waitUntil, timeout, scope, limit, exclude, scroll } = params;
 
   //console.log("Limit: " + limit);
 
@@ -72,10 +99,44 @@ async function run(params) {
       return;
     }
 
+    //page.on('console', message => console.log(`${message.type()} ${message.text()}`));
+    //page.on('pageerror', message => console.warn(message));
+    //page.on('error', message => console.warn(message));
+    //page.on('requestfailed', message => console.warn(message._failureText));
+    const mediaResults = [];
+
+    await page.exposeFunction('__crawler_queueUrls', (url) => {
+      mediaResults.push(directCapture(url));
+    });
+
+    let waitForVideo = false;
+
+    await page.exposeFunction('__crawler_autoplayLoad', (url) => {
+      console.log("*** Loading autoplay URL: " + url);
+      waitForVideo = true;
+    });
+
+    try {
+      await page.evaluateOnNewDocument(autoplayScript);
+    } catch(e) {
+      console.log(e);
+    }
+
     try {
       await page.goto(url, {waitUntil, timeout});
     } catch (e) {
       console.log(`Load timeout for ${url}`);
+    }
+
+    try {
+      await Promise.all(mediaResults);
+    } catch (e) {
+      console.log(`Error loading media URLs`, e);
+    }
+
+    if (waitForVideo) {
+      console.log("Extra wait 15s for video loading");
+      await sleep(15000);
     }
 
     if (scroll) {
@@ -148,8 +209,18 @@ function shouldCrawl(scope, seenList, url, exclude) {
     return false;
   }
 
-  // if scope is provided, skip urls not in scope
-  if (scope && !url.startsWith(scope)) {
+  let inScope = false;
+
+  // check scopes
+  for (const s of scope) {
+    if (s.exec(url)) {
+      inScope = true;
+      break;
+    }
+  }
+
+  if (!inScope) {
+    //console.log(`Not in scope ${url} ${scope}`);
     return false;
   }
 
@@ -166,8 +237,6 @@ function shouldCrawl(scope, seenList, url, exclude) {
 
 async function htmlCheck(url, capturePrefix) {
   try {
-    const headers = {"User-Agent": CHROME_USER_AGENT};
-
     const agent = url.startsWith("https:") ? HTTPS_AGENT : null;
 
     const resp = await fetch(url, {method: "HEAD", headers, agent});
@@ -191,11 +260,7 @@ async function htmlCheck(url, capturePrefix) {
     }
 
     // capture directly
-    console.log(`Direct capture: ${capturePrefix}${url}`);
-    const abort = new AbortController();
-    const signal = abort.signal;
-    const resp2 = await fetch(capturePrefix + url, {signal, headers});
-    abort.abort();
+    await directCapture(url);
 
     return false;
   } catch(e) {
@@ -204,6 +269,15 @@ async function htmlCheck(url, capturePrefix) {
     return true;
   }
 }
+
+async function directCapture(url) {
+  console.log(`Direct capture: ${capturePrefix}${url}`);
+  const abort = new AbortController();
+  const signal = abort.signal;
+  const resp2 = await fetch(capturePrefix + url, {signal, headers});
+  abort.abort();
+}
+
 
 
 async function autoScroll() {
@@ -249,6 +323,12 @@ async function main() {
       type: "number",
     },
 
+    "newContext": {
+      describe: "The context for each new capture, can be a new: page, session or browser.",
+      default: "page",
+      type: "string"
+    },
+
     "waitUntil": {
       describe: "Puppeteer page.goto() condition to wait for before continuing",
       default: "load",
@@ -267,11 +347,11 @@ async function main() {
     },
 
     "scope": {
-      describe: "The scope of current page that should be included in the crawl (defaults to the immediate directory of URL)",
+      describe: "Regex of page URLs that should be included in the crawl (defaults to the immediate directory of URL)",
     },
 
     "exclude": {
-      describe: "Regex of URLs that should be excluded from the crawl."
+      describe: "Regex of page URLs that should be excluded from the crawl."
     },
 
     "scroll": {
@@ -291,7 +371,8 @@ async function main() {
       argv.url = url.href;
 
       if (!argv.scope) {
-        argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
+        //argv.scope = url.href.slice(0, url.href.lastIndexOf("/") + 1);
+        argv.scope = [new RegExp("^" + rxEscape(url.href.slice(0, url.href.lastIndexOf("/") + 1)))];
       }
 
       argv.timeout *= 1000;
@@ -302,6 +383,11 @@ async function main() {
         throw new Error("Invalid waitUntil, must be one of: " + WAIT_UNTIL_OPTS.join(","));
       }
 
+      if (!NEW_CONTEXT_OPTS.includes(argv.newContext)) {
+        throw new Error("Invalid newContext, must be one of: " + NEW_CONTEXT_OPTS.join(","));
+      }
+
+      // Support one or multiple exclude
       if (argv.exclude) {
         if (typeof(argv.exclude) === "string") {
           argv.exclude = [new RegExp(argv.exclude)];
@@ -312,11 +398,23 @@ async function main() {
         argv.exclude = [];
       }
 
+      // Support one or multiple scopes
+      if (argv.scope) {
+        if (typeof(argv.scope) === "string") {
+          argv.scope = [new RegExp(argv.scope)];
+        } else {
+          argv.scope = argv.scope.map(e => new RegExp(e));
+        }
+      } else {
+        argv.scope = [];
+      }
+
       return true;
     })
   .argv;
 
   console.log("Exclusions Regexes: ", params.exclude);
+  console.log("Scope Regexes: ", params.scope);
 
   try {
     await run(params);
@@ -327,6 +425,11 @@ async function main() {
     process.exit(1);
   }
 }
+
+function rxEscape(string) {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
 
 main();
 

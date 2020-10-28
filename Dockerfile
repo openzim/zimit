@@ -15,12 +15,14 @@ ENV PROXY_HOST=localhost \
 
 RUN pip install gevent>=20.9.0 uwsgi
 
-RUN pip install warc2zim==1.2.0
+#RUN pip install git+https://github.com/openzim/warc2zim@fuzzy-match
+RUN pip install 'warc2zim>=1.3.0'
 
 RUN pip install git+https://github.com/webrecorder/pywb@patch-work
 
 COPY --from=chrome /usr/lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 COPY --from=chrome /lib/x86_64-linux-gnu/libdbus* /lib/x86_64-linux-gnu/
+COPY --from=chrome /opt/google/chrome/ /opt/google/chrome/
 
 WORKDIR /app
 
@@ -32,6 +34,8 @@ ADD config.yaml /app/
 ADD uwsgi.ini /app/
 ADD zimit.py /app/
 ADD crawler.js /app/
+ADD autoplay.js /app/
+
 RUN ln -s /app/zimit.py /usr/bin/zimit
 
 CMD ["zimit"]

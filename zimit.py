@@ -32,6 +32,13 @@ def zimit(args=None):
     parser.add_argument("-w", "--workers", type=int, help="Number of parallel workers")
 
     parser.add_argument(
+        "--newContext",
+        help="The context for each new capture, can be a new: page, session or browser.",
+        choices=["page", "session", "browser"],
+        default="page",
+    )
+
+    parser.add_argument(
         "--waitUntil",
         help="Puppeteer page.goto() condition to wait for before continuing",
         choices=["load", "domcontentloaded", "networkidle0", "networkidle2"],
@@ -51,11 +58,11 @@ def zimit(args=None):
 
     parser.add_argument(
         "--scope",
-        help="The scope of current page that should be included in the crawl (defaults to the immediate directory of the URL)",
+        help="Regex of page URLs that should be included in the crawl (defaults to the immediate directory of the URL)",
     )
 
     parser.add_argument(
-        "--exclude", help="Regex of URLs that should be excluded from the crawl."
+        "--exclude", help="Regex of page URLs that should be excluded from the crawl."
     )
 
     parser.add_argument(
@@ -150,6 +157,7 @@ def get_node_cmd_line(args):
     for arg in [
         "url",
         "workers",
+        "newContext",
         "waitUntil",
         "limit",
         "timeout",

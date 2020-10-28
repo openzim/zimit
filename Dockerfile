@@ -15,7 +15,8 @@ ENV PROXY_HOST=localhost \
 
 RUN pip install gevent>=20.9.0 uwsgi
 
-RUN pip install git+https://github.com/openzim/warc2zim@fuzzy-match
+#RUN pip install git+https://github.com/openzim/warc2zim@fuzzy-match
+RUN pip install 'warc2zim>=1.3.0'
 
 RUN pip install git+https://github.com/webrecorder/pywb@patch-work
 

@@ -114,31 +114,15 @@ def zimit(args=None):
 
         atexit.register(cleanup)
 
-    # create pywb collection
-    print("")
-    print("----------")
-    print("pywb init")
-    subprocess.run(
-        ["/usr/bin/env", "wb-manager", "init", "capture"], check=True, cwd=temp_root_dir
-    )  # nosec
-
-    subprocess.Popen(
-        ["/usr/bin/env", "redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL
-    )  # nosec
-
-    subprocess.Popen(
-        ["/usr/bin/env", "uwsgi", os.getcwd() + "/uwsgi.ini"],
-        cwd=temp_root_dir,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )  # nosec
-
     cmd_args = get_node_cmd_line(zimit_args)
+    cmd_args.append("--cwd")
+    cmd_args.append(str(temp_root_dir))
+
     cmd_line = " ".join(cmd_args)
 
     print("")
     print("----------")
-    print("running zimit driver: " + cmd_line)
+    print("running browsertrix-crawler crawl: " + cmd_line)
     subprocess.run(cmd_args, check=True)
 
     warc_files = temp_root_dir / "collections" / "capture" / "archive"
@@ -153,7 +137,7 @@ def zimit(args=None):
     return warc2zim(warc2zim_args)
 
 def get_node_cmd_line(args):
-    node_cmd = ["/usr/bin/env", "node", "crawler.js"]
+    node_cmd = ["crawl"]
     for arg in [
         "url",
         "workers",

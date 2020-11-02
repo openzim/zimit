@@ -12,16 +12,15 @@ Technical background
 
 This version of Zimit runs a single-site headless-Chrome based crawl in a Docker container and produces a ZIM of the crawled content.
 
-The system uses:
- - `oldwebtoday/chrome` - to install a recent version of Chrome 84
- - `puppeteer-cluster` - for running Chrome browsers in parallel
- - `pywb` - in recording mode for capturing the content
- - `warc2zim` - to convert the crawled WARC files into a ZIM
+The system extends the crawling system in [Browsertrix Crawler](https://github.com/webrecorder/browsertrix-crawler) and converts
+the crawled WARC files to ZIM using [warc2zim](https://github.com/openzim/warc2zim)
 
-The driver in `index.js` crawls a given URL using puppeteer-cluster.
+The `zimit.py` is the entrypoint for the system.
 
 After the crawl is done, warc2zim is used to write a zim to the
 `/output` directory, which can be mounted as a volume.
+
+Using the `--keep` flag, the crawled WARCs will also be kept in a temp directory inside `/output`
 
 Usage
 -----
@@ -44,6 +43,7 @@ The image accepts the following parameters:
 - `--limit U` - Limit capture to at most U URLs
 - `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times.
 - `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
+- `--keep` - if set, keep the WARC files in a temp directory inside the output directory
 
 The following is an example usage. The `--cap-add` and `--shm-size`
 flags are [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).

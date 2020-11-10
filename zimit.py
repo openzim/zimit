@@ -20,6 +20,8 @@ import sys
 from pathlib import Path
 
 from warc2zim.main import warc2zim
+from urllib.parse import urlsplit
+import requests
 
 
 def zimit(args=None):
@@ -89,9 +91,12 @@ def zimit(args=None):
         warc2zim_args.append("--output")
         warc2zim_args.append(zimit_args.output)
 
-    if zimit_args.url:
+    url = zimit_args.url
+
+    if url:
+        url = check_url(url)
         warc2zim_args.append("--url")
-        warc2zim_args.append(zimit_args.url)
+        warc2zim_args.append(url)
 
     print("----------")
     print("Testing warc2zim args")
@@ -105,7 +110,6 @@ def zimit(args=None):
     temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
-
         def cleanup():
             print("")
             print("----------")
@@ -115,6 +119,10 @@ def zimit(args=None):
         atexit.register(cleanup)
 
     cmd_args = get_node_cmd_line(zimit_args)
+    if url:
+        cmd_args.append("--url")
+        cmd_args.append(url)
+
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
 
@@ -136,10 +144,25 @@ def zimit(args=None):
 
     return warc2zim(warc2zim_args)
 
+def check_url(url):
+    resp = requests.get(url, allow_redirects=True, timeout=3)
+    actual_url = resp.url
+    try:
+        resp.close()
+    except Exception:
+        pass
+
+    if actual_url != url:
+        if urlsplit(url).netloc != urlsplit(actual_url).netloc:
+            raise ValueError("Main page URL ({0}) redirects to out-of-scope domain ({1}), cancelling crawl".format(url, actual_url))
+
+        return actual_url
+
+    return url
+
 def get_node_cmd_line(args):
     node_cmd = ["crawl"]
     for arg in [
-        "url",
         "workers",
         "newContext",
         "waitUntil",

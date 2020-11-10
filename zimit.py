@@ -9,17 +9,17 @@ and then calls the Node based driver
 """
 
 from argparse import ArgumentParser
-import os
 import tempfile
 import subprocess
 import atexit
 import shutil
-import glob
 import signal
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from warc2zim.main import warc2zim
+import requests
 
 
 def zimit(args=None):
@@ -33,7 +33,7 @@ def zimit(args=None):
 
     parser.add_argument(
         "--newContext",
-        help="The context for each new capture, can be a new: page, session or browser.",
+        help="The context for each new capture (page, session or browser).",
         choices=["page", "session", "browser"],
         default="page",
     )
@@ -58,7 +58,8 @@ def zimit(args=None):
 
     parser.add_argument(
         "--scope",
-        help="Regex of page URLs that should be included in the crawl (defaults to the immediate directory of the URL)",
+        help="Regex of page URLs that should be included in the crawl "
+        "(defaults to the immediate directory of the URL)",
     )
 
     parser.add_argument(
@@ -89,9 +90,12 @@ def zimit(args=None):
         warc2zim_args.append("--output")
         warc2zim_args.append(zimit_args.output)
 
-    if zimit_args.url:
+    url = zimit_args.url
+
+    if url:
+        url = check_url(url)
         warc2zim_args.append("--url")
-        warc2zim_args.append(zimit_args.url)
+        warc2zim_args.append(url)
 
     print("----------")
     print("Testing warc2zim args")
@@ -109,36 +113,24 @@ def zimit(args=None):
         def cleanup():
             print("")
             print("----------")
-            print("Cleanup, removing temp dir: " + str(temp_root_dir))
+            print(f"Cleanup, removing temp dir: {temp_root_dir}")
             shutil.rmtree(temp_root_dir)
 
         atexit.register(cleanup)
 
-    # create pywb collection
-    print("")
-    print("----------")
-    print("pywb init")
-    subprocess.run(
-        ["/usr/bin/env", "wb-manager", "init", "capture"], check=True, cwd=temp_root_dir
-    )  # nosec
-
-    subprocess.Popen(
-        ["/usr/bin/env", "redis-server"], cwd=temp_root_dir, stdout=subprocess.DEVNULL
-    )  # nosec
-
-    subprocess.Popen(
-        ["/usr/bin/env", "uwsgi", os.getcwd() + "/uwsgi.ini"],
-        cwd=temp_root_dir,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )  # nosec
-
     cmd_args = get_node_cmd_line(zimit_args)
+    if url:
+        cmd_args.append("--url")
+        cmd_args.append(url)
+
+    cmd_args.append("--cwd")
+    cmd_args.append(str(temp_root_dir))
+
     cmd_line = " ".join(cmd_args)
 
     print("")
     print("----------")
-    print("running zimit driver: " + cmd_line)
+    print(f"running browsertrix-crawler crawl: {cmd_line}")
     subprocess.run(cmd_args, check=True)
 
     warc_files = temp_root_dir / "collections" / "capture" / "archive"
@@ -148,14 +140,34 @@ def zimit(args=None):
 
     print("")
     print("----------")
-    print("Processing {0} WARC files to ZIM".format(num_files))
+    print(f"Processing {num_files} WARC files to ZIM")
 
     return warc2zim(warc2zim_args)
 
+
+def check_url(url):
+    try:
+        resp = requests.head(url, stream=True, allow_redirects=True, timeout=10)
+    except requests.exceptions.RequestException as exc:
+        print(f"failed to connect to {url}: {exc}")
+        raise SystemExit(1)
+    actual_url = resp.url
+
+    if actual_url != url:
+        if urlsplit(url).netloc != urlsplit(actual_url).netloc:
+            raise ValueError(
+                f"Main page URL ({url}) redirects to out-of-scope domain "
+                f"({actual_url}), cancelling crawl"
+            )
+
+        return actual_url
+
+    return url
+
+
 def get_node_cmd_line(args):
-    node_cmd = ["/usr/bin/env", "node", "crawler.js"]
+    node_cmd = ["crawl"]
     for arg in [
-        "url",
         "workers",
         "newContext",
         "waitUntil",

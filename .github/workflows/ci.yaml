@@ -13,7 +13,7 @@ jobs:
         run: docker build -t openzim/zimit:dev .
 
       - name: run crawl
-        run: docker run -it -v $PWD/output:/output openzim/zimit:dev zimit --url https://isago.ml/ --name isago --zim-file isago.zim
+        run: docker run -v $PWD/output:/output openzim/zimit:dev zimit --url https://isago.ml/ --name isago --zim-file isago.zim
 
       - name: ensure zim exists
         run: stat ./output/isago.zim

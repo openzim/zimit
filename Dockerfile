@@ -4,7 +4,7 @@ RUN mkdir -p /output
 
 WORKDIR /app
 
-RUN pip install 'warc2zim>=1.3.1'
+RUN pip install 'warc2zim>=1.3.1' 'requests>=2.24.0'
 
 ADD zimit.py /app/
 

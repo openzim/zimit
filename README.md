@@ -52,7 +52,7 @@ Example command:
 
 ```bash
 docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN \
-       --shm-size=1gb openzim/zimit zimit --url URL --name myzimfile --workers 2 --wait-until domcontentloaded
+       --shm-size=1gb openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
 ```
 
 The puppeteer-cluster provides monitoring output which is enabled by

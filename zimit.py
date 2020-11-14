@@ -89,6 +89,11 @@ def zimit(args=None):
         "--mobileDevice", help="Crawl as Mobile Device", nargs="?", const="iPhone X"
     )
 
+    parser.add_argument(
+        "--useSitemap",
+        help="If set, use the URL as sitemap to get additional URLs for the crawl (usually /sitemap.xml)",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(args)
 
     # pass url and output to warc2zim also
@@ -115,6 +120,7 @@ def zimit(args=None):
     temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
+
         def cleanup():
             print("")
             print("----------")
@@ -142,7 +148,9 @@ def zimit(args=None):
 
     print("")
     print("----------")
-    print(f"Output to tempdir: {temp_root_dir} - {'will keep' if zimit_args.keep else 'will delete'}")
+    print(
+        f"Output to tempdir: {temp_root_dir} - {'will keep' if zimit_args.keep else 'will delete'}"
+    )
     print(f"Running browsertrix-crawler crawl: {cmd_line}", flush=True)
     subprocess.run(cmd_args, check=True)
 
@@ -190,6 +198,7 @@ def get_node_cmd_line(args):
         "exclude",
         "scroll",
         "mobileDevice",
+        "useSitemap",
     ]:
         value = getattr(args, arg)
         if value:

@@ -21,6 +21,7 @@ def test_zim_main_page():
 def test_user_agent():
     """ Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
 
+    found = False
     #result = get_zim_article("/output/isago.zim", "H/isago.ml/")
     #print(result)
     for warc in glob.glob("/output/.tmp*/collections/capture/archive/*.warc.gz"):
@@ -32,7 +33,7 @@ def test_user_agent():
                     if ua:
                         assert "iPhone" in ua
                         assert ua.endswith(" +Zimit test@example.com")
-                        return
+                        found = True
 
-    # not found
-    assert False
+    # should find at least one
+    assert found

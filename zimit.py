@@ -83,6 +83,12 @@ def zimit(args=None):
         "--output", help="Output directory for ZIM and WARC files", default="/output"
     )
 
+    parser.add_argument("--adminEmail", help="Admin Email for Zimit crawler")
+
+    parser.add_argument(
+        "--mobileDevice", help="Crawl as Mobile Device", nargs="?", const="iPhone X"
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(args)
 
     # pass url and output to warc2zim also
@@ -99,7 +105,7 @@ def zimit(args=None):
 
     print("----------")
     print("Testing warc2zim args")
-    print("Running: warc2zim " + " ".join(warc2zim_args))
+    print("Running: warc2zim " + " ".join(warc2zim_args), flush=True)
     res = warc2zim(warc2zim_args)
     if res != 100:
         print("Exiting, invalid warc2zim params")
@@ -109,11 +115,10 @@ def zimit(args=None):
     temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
-
         def cleanup():
             print("")
             print("----------")
-            print(f"Cleanup, removing temp dir: {temp_root_dir}")
+            print(f"Cleanup, removing temp dir: {temp_root_dir}", flush=True)
             shutil.rmtree(temp_root_dir)
 
         atexit.register(cleanup)
@@ -123,6 +128,13 @@ def zimit(args=None):
         cmd_args.append("--url")
         cmd_args.append(url)
 
+    user_agent_suffix = "+Zimit "
+    if zimit_args.adminEmail:
+        user_agent_suffix += zimit_args.adminEmail
+
+    cmd_args.append("--userAgentSuffix")
+    cmd_args.append(user_agent_suffix)
+
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
 
@@ -130,7 +142,8 @@ def zimit(args=None):
 
     print("")
     print("----------")
-    print(f"running browsertrix-crawler crawl: {cmd_line}")
+    print(f"Output to tempdir: {temp_root_dir} - {'will keep' if zimit_args.keep else 'will delete'}")
+    print(f"Running browsertrix-crawler crawl: {cmd_line}", flush=True)
     subprocess.run(cmd_args, check=True)
 
     warc_files = temp_root_dir / "collections" / "capture" / "archive"
@@ -140,7 +153,7 @@ def zimit(args=None):
 
     print("")
     print("----------")
-    print(f"Processing {num_files} WARC files to ZIM")
+    print(f"Processing {num_files} WARC files to ZIM", flush=True)
 
     return warc2zim(warc2zim_args)
 
@@ -149,7 +162,7 @@ def check_url(url):
     try:
         resp = requests.head(url, stream=True, allow_redirects=True, timeout=10)
     except requests.exceptions.RequestException as exc:
-        print(f"failed to connect to {url}: {exc}")
+        print(f"failed to connect to {url}: {exc}", flush=True)
         raise SystemExit(1)
     actual_url = resp.url
 
@@ -176,6 +189,7 @@ def get_node_cmd_line(args):
         "scope",
         "exclude",
         "scroll",
+        "mobileDevice",
     ]:
         value = getattr(args, arg)
         if value:
@@ -191,7 +205,7 @@ def sigint_handler(*args):
     print("")
     print("SIGINT/SIGTERM received, stopping zimit")
     print("")
-    print("")
+    print("", flush=True)
     sys.exit(3)
 
 

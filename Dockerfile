@@ -4,8 +4,7 @@ RUN mkdir -p /output
 
 WORKDIR /app
 
-#RUN pip install 'warc2zim>=1.3.1' 'requests>=2.24.0'
-RUN pip install git+https://github.com/openzim/warc2zim.git@replay-update
+RUN pip install 'warc2zim>=1.3.2' 'requests>=2.24.0'
 
 ADD zimit.py /app/
 

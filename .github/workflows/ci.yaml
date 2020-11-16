@@ -13,7 +13,7 @@ jobs:
         run: docker build -t openzim/zimit:dev .
 
       - name: run crawl
-        run: docker run -v $PWD/output:/output openzim/zimit:dev zimit --url http://isago.ml/ --name isago --zim-file isago.zim
+        run: docker run -v $PWD/output:/output openzim/zimit:dev zimit --url http://isago.ml/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice --keep
 
-      - name: ensure zim exists
-        run: stat ./output/isago.zim
+      - name: run integration test suite
+        run: docker run -v $PWD/test/integration.py:/app/integration.py -v $PWD/output:/output openzim/zimit:dev bash -c "pip install pytest; pytest -v ./integration.py"

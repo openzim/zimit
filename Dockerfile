@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:0.1.2
+FROM webrecorder/browsertrix-crawler:0.1.3
 
 RUN mkdir -p /output
 

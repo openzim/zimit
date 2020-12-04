@@ -1,5 +1,6 @@
 import os
 import glob
+import json
 
 import libzim.reader
 from warcio import ArchiveIterator
@@ -41,3 +42,12 @@ def test_user_agent():
 
     # should find at least one
     assert found
+
+
+def test_stats_output():
+    with open("/output/stats.json") as fh:
+        assert json.loads(fh.read()) == {
+            "numCrawled": 5,
+            "workersRunning": 0,
+            "total": 5,
+        }

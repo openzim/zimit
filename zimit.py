@@ -94,6 +94,11 @@ def zimit(args=None):
         help="If set, use the URL as sitemap to get additional URLs for the crawl (usually /sitemap.xml)",
     )
 
+    parser.add_argument(
+        "--statsFilename",
+        help="If set, output stats as JSON to this file",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(args)
 
     # pass url and output to warc2zim also
@@ -199,6 +204,7 @@ def get_node_cmd_line(args):
         "scroll",
         "mobileDevice",
         "useSitemap",
+        "statsFilename",
     ]:
         value = getattr(args, arg)
         if value:

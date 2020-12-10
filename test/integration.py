@@ -45,9 +45,19 @@ def test_user_agent():
 
 
 def test_stats_output():
-    with open("/output/stats.json") as fh:
+    with open("/output/crawl.json") as fh:
         assert json.loads(fh.read()) == {
             "numCrawled": 5,
             "workersRunning": 0,
             "total": 5,
+        }
+    with open("/output/warc2zim.json") as fh:
+        assert json.loads(fh.read()) == {
+            "written": 7,
+            "total": 7,
+        }
+    with open("/output/stats.json") as fh:
+        assert json.loads(fh.read()) == {
+            "done": 7,
+            "total": 7,
         }

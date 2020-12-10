@@ -15,11 +15,81 @@ import atexit
 import shutil
 import signal
 import sys
+import json
 from pathlib import Path
 from urllib.parse import urlsplit
+from multiprocessing import Process
 
 from warc2zim.main import warc2zim
 import requests
+import inotify
+import inotify.adapters
+
+
+class ProgressFileWatcher:
+    def __init__(self, output_dir, stats_path):
+        self.crawl_path = output_dir / "crawl.json"
+        self.warc2zim_path = output_dir / "warc2zim.json"
+        self.stats_path = Path(stats_path)
+
+        if not self.stats_path.is_absolute():
+            self.stats_path = output_dir / self.stats_path
+
+        # touch them all so inotify is not unhappy on add_watch
+        self.crawl_path.touch()
+        self.warc2zim_path.touch()
+        self.stats_path.touch()
+        self.process = None
+
+    def stop(self):
+        self.process.join(0.1)
+        self.process.terminate()
+
+    def watch(self):
+        self.process = Process(
+            target=self.inotify_watcher,
+            args=(str(self.crawl_path), str(self.warc2zim_path), str(self.stats_path)),
+        )
+        self.process.daemon = True
+        self.process.start()
+
+    @staticmethod
+    def inotify_watcher(crawl_fpath, warc2zim_fpath, output_fpath):
+        ino = inotify.adapters.Inotify()
+        ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)
+        ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)
+
+        def crawl_conv(data):
+            # we consider crawl to be 90% of the workload so total = craw_total * 90%
+            return {"done": data["numCrawled"], "total": int(data["total"] / 0.9)}
+
+        def warc2zim_conv(data):
+            # we consider warc2zim to be 10% of the workload so
+            # warc2zim_total = 10% and  total = 90 + warc2zim_total * 10%
+            return {
+                "done": int(
+                    data["total"]
+                    * (0.9 + (float(data["written"]) / data["total"]) / 10)
+                ),
+                "total": data["total"],
+            }
+
+        for _, _, fpath, _ in ino.event_gen(yield_nones=False):
+            func = {crawl_fpath: crawl_conv, warc2zim_fpath: warc2zim_conv}.get(fpath)
+            if not func:
+                continue
+            # open input and output separatly as to not clear output on error
+            with open(fpath, "r") as ifh:
+                try:
+                    out = func(json.load(ifh))
+                except Exception:  # nosec
+                    # simply ignore progress update should an error arise
+                    # might be malformed input for instance
+                    continue
+                if not out:
+                    continue
+                with open(output_fpath, "w") as ofh:
+                    json.dump(out, ofh)
 
 
 def zimit(args=None):
@@ -149,6 +219,21 @@ def zimit(args=None):
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
 
+    # setup inotify crawler progress watcher
+    if zimit_args.statsFilename:
+        watcher = ProgressFileWatcher(
+            Path(zimit_args.output), Path(zimit_args.statsFilename)
+        )
+        print(f"Writing progress to {watcher.stats_path}")
+        # update crawler command
+        cmd_args.append("--statsFilename")
+        cmd_args.append(str(watcher.crawl_path))
+        # update warc2zim command
+        warc2zim_args.append("-v")
+        warc2zim_args.append("--progress-file")
+        warc2zim_args.append(str(watcher.warc2zim_path))
+        watcher.watch()
+
     cmd_line = " ".join(cmd_args)
 
     print("")
@@ -204,7 +289,6 @@ def get_node_cmd_line(args):
         "scroll",
         "mobileDevice",
         "useSitemap",
-        "statsFilename",
     ]:
         value = getattr(args, arg)
         if value:

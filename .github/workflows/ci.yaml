@@ -10,10 +10,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: build image
-        run: docker build -t openzim/zimit:dev .
+        run: docker build -t zimit .
 
       - name: run crawl
-        run: docker run -v $PWD/output:/output openzim/zimit:dev zimit --url http://isago.ml/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice --statsFilename /output/stats.json --keep
+        run: docker run -v $PWD/output:/output zimit zimit --url http://isago.ml/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice --statsFilename /output/stats.json --keep
 
       - name: run integration test suite
-        run: docker run -v $PWD/test/integration.py:/app/integration.py -v $PWD/output:/output openzim/zimit:dev bash -c "pip install pytest; pytest -v ./integration.py"
+        run: docker run -v $PWD/test/integration.py:/app/integration.py -v $PWD/output:/output zimit bash -c "pip install pytest; pytest -v ./integration.py"

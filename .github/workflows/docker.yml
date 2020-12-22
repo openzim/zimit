@@ -1,24 +1,24 @@
-name: Container
+name: Docker
 
 on:
   push:
     branches:
-      - 'master'
+      - master
     tags:
       - v*
 
 jobs:
-  youtube:
+  build-and-push:
     name: Deploy Docker Image
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - name: Publish docker
-        uses: rgaudin/openzim-docker-action@main
+      - name: Build and push
+        uses: openzim/docker-publish-action@v1
         with:
           image-path: openzim/zimit
           on-master: dev
-          tag-pattern: v*
+          tag-pattern: /^v([0-9.]+)$/
           latest-on-tag: true
           restrict-to: openzim/zimit
           hub-username: ${{ secrets.DOCKERHUB_USERNAME }}

@@ -1,4 +1,4 @@
-# 1.1
+# 1.1.1
 
 - updated browsertrix-crawler to 0.1.4
   - autofetcher script to be injected by defaultDriver to capture srcsets + URLs in dynamically added stylesheets

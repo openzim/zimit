@@ -1,0 +1,27 @@
+name: Container
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - v*
+
+jobs:
+  youtube:
+    name: Deploy Docker Image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Publish docker
+        uses: rgaudin/openzim-docker-action@main
+        with:
+          image-path: openzim/zimit
+          on-master: dev
+          tag-pattern: v*
+          latest-on-tag: true
+          restrict-to: openzim/zimit
+          hub-username: ${{ secrets.DOCKERHUB_USERNAME }}
+          hub-password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          ghcr-username: ${{ secrets.GHCR_USERNAME }}
+          ghcr-token: ${{ secrets.GHCR_TOKEN }}

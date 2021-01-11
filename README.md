@@ -60,6 +60,8 @@ docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN \
 The puppeteer-cluster provides monitoring output which is enabled by
 default and prints the crawl status to the Docker log.
 
+**Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" openzim/zimit ...`).
+
 Nota bene
 ---------
 

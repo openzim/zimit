@@ -14,14 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build and push
-        uses: openzim/docker-publish-action@v1
+        uses: openzim/docker-publish-action@v5
         with:
-          image-path: openzim/zimit
+          image-name: openzim/zimit
           on-master: dev
           tag-pattern: /^v([0-9.]+)$/
           latest-on-tag: true
           restrict-to: openzim/zimit
-          hub-username: ${{ secrets.DOCKERHUB_USERNAME }}
-          hub-password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          ghcr-username: ${{ secrets.GHCR_USERNAME }}
-          ghcr-token: ${{ secrets.GHCR_TOKEN }}
+          credentials:
+            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}

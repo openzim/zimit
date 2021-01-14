@@ -165,6 +165,11 @@ def zimit(args=None):
     )
 
     parser.add_argument(
+        "--custom-css",
+        help="[warc2zim] Custom CSS file URL/path to inject into all articles",
+    )
+
+    parser.add_argument(
         "--statsFilename",
         help="If set, output stats as JSON to this file",
     )
@@ -182,6 +187,9 @@ def zimit(args=None):
         url = check_url(url)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
+
+    if zimit_args.custom_css:
+        warc2zim_args += ["--custom-css", zimit_args.custom_css]
 
     print("----------")
     print("Testing warc2zim args")

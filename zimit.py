@@ -8,6 +8,7 @@ This script validates arguments with warc2zim, checks permissions
 and then calls the Node based driver
 """
 
+import re
 from argparse import ArgumentParser
 import tempfile
 import subprocess
@@ -17,13 +18,13 @@ import signal
 import sys
 import json
 from pathlib import Path
-from urllib.parse import urlsplit
 from multiprocessing import Process
 
 from warc2zim.main import warc2zim
 import requests
 import inotify
 import inotify.adapters
+from tld import get_fld
 
 
 class ProgressFileWatcher:
@@ -184,7 +185,7 @@ def zimit(args=None):
     url = zimit_args.url
 
     if url:
-        url = check_url(url)
+        url = check_url(url, zimit_args.scope)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
 
@@ -264,7 +265,7 @@ def zimit(args=None):
     return warc2zim(warc2zim_args)
 
 
-def check_url(url):
+def check_url(url, scope=None):
     try:
         resp = requests.head(url, stream=True, allow_redirects=True, timeout=10)
     except requests.exceptions.RequestException as exc:
@@ -273,13 +274,22 @@ def check_url(url):
     actual_url = resp.url
 
     if actual_url != url:
-        if urlsplit(url).netloc != urlsplit(actual_url).netloc:
-            raise ValueError(
-                f"Main page URL ({url}) redirects to out-of-scope domain "
-                f"({actual_url}), cancelling crawl"
-            )
+        # redirect on same domain or same first-level domain
+        if get_fld(url) == get_fld(actual_url):
+            return actual_url
 
-        return actual_url
+        # is it in scope?
+        if scope:
+            try:
+                if re.match(scope, actual_url):
+                    return actual_url
+            except Exception as exc:
+                print(f"failed to parse your scope regexp for url checking: {exc}")
+
+        raise ValueError(
+            f"Main page URL ({url}) redirects to out-of-scope domain "
+            f"({actual_url}), cancelling crawl"
+        )
 
     return url
 

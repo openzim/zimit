@@ -1,3 +1,13 @@
+# 1.1.3
+
+- allows same first-level-domain redirects
+- fixed redirects to URL in scope
+
+# 1.1.2
+
+- added support for --custom-css
+- added domains block list (dfault)
+
 # 1.1.1
 
 - updated browsertrix-crawler to 0.1.4

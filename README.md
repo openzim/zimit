@@ -43,7 +43,7 @@ The image accepts the following parameters:
 - `--name` - Name of ZIM file (defaults to the hostname of the URL)
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
-- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times.
+- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded. 
 - `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
 - `--keep` - if set, keep the WARC files in a temp directory inside the output directory
 

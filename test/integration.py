@@ -50,6 +50,7 @@ def test_stats_output():
             "numCrawled": 5,
             "workersRunning": 0,
             "total": 5,
+            "limit": {"max": 0, "hit": False}
         }
     with open("/output/warc2zim.json") as fh:
         assert json.loads(fh.read()) == {
@@ -60,4 +61,5 @@ def test_stats_output():
         assert json.loads(fh.read()) == {
             "done": 7,
             "total": 7,
+            "limit": {"max": 0, "hit": False}
         }

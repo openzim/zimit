@@ -60,11 +60,29 @@ class ProgressFileWatcher:
         ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)
         ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)
 
-        def crawl_conv(data):
-            # we consider crawl to be 90% of the workload so total = craw_total * 90%
-            return {"done": data["numCrawled"], "total": int(data["total"] / 0.9)}
+        class Limit:
+            def __init__(self):
+                self.max = self.hit = None
 
-        def warc2zim_conv(data):
+            @property
+            def as_dict(self):
+                return {"max": self.max, "hit": self.hit}
+
+        # limit is only reported by crawl but needs to be reported up
+        limit = Limit()
+
+        def crawl_conv(data, limit):
+            # we consider crawl to be 90% of the workload so total = craw_total * 90%
+            # limit = {"max": data["limit"]["max"], "hit": data["limit"]["hit"]}
+            limit.max = data["limit"]["max"]
+            limit.hit = data["limit"]["hit"]
+            return {
+                "done": data["numCrawled"],
+                "total": int(data["total"] / 0.9),
+                "limit": limit.as_dict,
+            }
+
+        def warc2zim_conv(data, limit):
             # we consider warc2zim to be 10% of the workload so
             # warc2zim_total = 10% and  total = 90 + warc2zim_total * 10%
             return {
@@ -73,6 +91,7 @@ class ProgressFileWatcher:
                     * (0.9 + (float(data["written"]) / data["total"]) / 10)
                 ),
                 "total": data["total"],
+                "limit": limit.as_dict,
             }
 
         for _, _, fpath, _ in ino.event_gen(yield_nones=False):
@@ -82,7 +101,7 @@ class ProgressFileWatcher:
             # open input and output separatly as to not clear output on error
             with open(fpath, "r") as ifh:
                 try:
-                    out = func(json.load(ifh))
+                    out = func(json.load(ifh), limit)
                 except Exception:  # nosec
                     # simply ignore progress update should an error arise
                     # might be malformed input for instance

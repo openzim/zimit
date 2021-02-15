@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:0.1.4
+FROM webrecorder/browsertrix-crawler:0.2.0
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
 
 RUN mkdir -p /output

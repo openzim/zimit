@@ -2,6 +2,7 @@
 
 - allows same first-level-domain redirects
 - fixed redirects to URL in scope
+- updated crawler to 0.2.0
 
 # 1.1.2
 

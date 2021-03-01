@@ -3,6 +3,7 @@
 - allows same first-level-domain redirects
 - fixed redirects to URL in scope
 - updated crawler to 0.2.0
+- `statsFilename` now informs whether limit was hit or not
 
 # 1.1.2
 

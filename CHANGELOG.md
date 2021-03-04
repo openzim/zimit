@@ -1,3 +1,8 @@
+# 1.1.4
+
+- Defaults to `load,networkidle0` for waitUntil param (same as crawler)
+- Allows setting combinations of values for waitUntil param
+
 # 1.1.3
 
 - allows same first-level-domain redirects

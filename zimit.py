@@ -9,6 +9,7 @@ and then calls the Node based driver
 """
 
 import re
+import itertools
 from argparse import ArgumentParser
 import tempfile
 import subprocess
@@ -22,6 +23,7 @@ from multiprocessing import Process
 
 from warc2zim.main import warc2zim
 import requests
+
 import inotify
 import inotify.adapters
 from tld import get_fld
@@ -113,6 +115,10 @@ class ProgressFileWatcher:
 
 
 def zimit(args=None):
+    wait_until_options = ["load", "domcontentloaded", "networkidle0", "networkidle2"]
+    wait_until_all = wait_until_options + [
+        f"{a},{b}" for a, b in itertools.combinations(wait_until_options, 2)
+    ]
     parser = ArgumentParser(
         description="Run a browser-based crawl on the specified URL and convert to ZIM"
     )
@@ -130,9 +136,10 @@ def zimit(args=None):
 
     parser.add_argument(
         "--waitUntil",
-        help="Puppeteer page.goto() condition to wait for before continuing",
-        choices=["load", "domcontentloaded", "networkidle0", "networkidle2"],
-        default="load",
+        help="Puppeteer page.goto() condition to wait for before continuing. One of "
+        f"{wait_until_options} or a comma-separated combination of those.",
+        choices=wait_until_all,
+        default="load,networkidle0",
     )
 
     parser.add_argument(

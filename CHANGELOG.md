@@ -4,6 +4,8 @@
 - Allows setting combinations of values for waitUntil param
 - Updated warc2zim to 1.3.5
 - Updated browsertrix-crawler to 0.3.1
+- Warc to zim now written to `{temp_root_dir}/collections/capture-*/archive/` where
+  `capture-*` is dynamic and includes the datetime. (from browsertrix-crawler)
 
 # 1.1.3
 

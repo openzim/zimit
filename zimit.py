@@ -279,7 +279,7 @@ def zimit(args=None):
     print(f"Running browsertrix-crawler crawl: {cmd_line}", flush=True)
     subprocess.run(cmd_args, check=True)
 
-    warc_files = temp_root_dir / "collections" / "capture" / "archive"
+    warc_files = list(temp_root_dir.rglob("collections/capture-*/archive/"))[-1]
     warc2zim_args.append(str(warc_files))
 
     num_files = sum(1 for e in warc_files.iterdir())

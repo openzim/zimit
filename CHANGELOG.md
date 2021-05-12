@@ -2,6 +2,8 @@
 
 - Defaults to `load,networkidle0` for waitUntil param (same as crawler)
 - Allows setting combinations of values for waitUntil param
+- Updated warc2zim to 1.3.5
+- Updated browsertrix-crawler to 0.3.1
 
 # 1.1.3
 

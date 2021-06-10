@@ -1,3 +1,7 @@
+# 1.1.5
+
+- using crawler 0.3.2 and warc2zim 1.3.6
+
 # 1.1.4
 
 - Defaults to `load,networkidle0` for waitUntil param (same as crawler)

@@ -1,11 +1,11 @@
-FROM webrecorder/browsertrix-crawler:0.3.1
+FROM webrecorder/browsertrix-crawler:0.3.2
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
 
 RUN mkdir -p /output
 
 WORKDIR /app
 
-RUN pip install 'warc2zim>=1.3.5' 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13'
+RUN pip install 'warc2zim>=1.3.6' 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13'
 
 ADD zimit.py /app/
 

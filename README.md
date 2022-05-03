@@ -35,7 +35,7 @@ To build locally run:
 docker build -t openzim/zimit .
 ```
 
-The image accepts the following parameters:
+The image accepts the following parameters, **as well as any of the [warc2zim](https://github.com/openzim/warc2zim) ones**; useful for setting metadata, for instance:
 
 - `--url URL` - the url to be crawled (required)
 - `--workers N` - number of crawl workers to be run in parallel
@@ -53,6 +53,8 @@ flags are [needed to run Chrome in Docker](https://github.com/puppeteer/puppetee
 Example command:
 
 ```bash
+docker run openzim/zimit zimit --help
+docker run openzim/zimit warc2zim --help
 docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN \
        --shm-size=1gb openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
 ```

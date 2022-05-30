@@ -7,7 +7,7 @@ Zimit is a scraper allowing to create ZIM file from any Web site.
 [![Docker Build Status](https://img.shields.io/docker/cloud/build/openzim/zimit)](https://hub.docker.com/r/openzim/zimit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-⚠️ **Important**: this tool uses [warc2zim](/openzim/warc2zim) to create Zim files and thus require the Zim reader to support *Service Workers*. At the time of `zimit:1.0`, that's mostly kiwix-android and kiwix-serve. Note that service workers have protocol restrictions as well so you'll need to run it either from `localhost` or over HTTPS.
+⚠️ **Important**: this tool uses [warc2zim](https://github.com/openzim/warc2zim) to create Zim files and thus require the Zim reader to support *Service Workers*. At the time of `zimit:1.0`, that's mostly kiwix-android and kiwix-serve. Note that service workers have protocol restrictions as well so you'll need to run it either from `localhost` or over HTTPS.
 
 Technical background
 --------------------

@@ -3,6 +3,7 @@ Zimit
 
 Zimit is a scraper allowing to create ZIM file from any Web site.
 
+[![Docker](https://img.shields.io/docker/v/openzim/zimit?label=docker&sort=semver)](https://hub.docker.com/r/openzim/zimit)
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/zimit/badge)](https://www.codefactor.io/repository/github/openzim/zimit)
 [![Docker Build Status](https://img.shields.io/docker/cloud/build/openzim/zimit)](https://hub.docker.com/r/openzim/zimit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

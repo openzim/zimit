@@ -17,10 +17,10 @@ def test_is_file():
 
 
 def test_zim_main_page():
-    """Main page specified, http://isago.ml/, was a redirect to https
+    """Main page specified, http://isago.rskg.org/, was a redirect to https
     Ensure main page is the redirected page"""
 
-    assert b'"https://isago.ml/"' in get_zim_article(
+    assert b'"https://isago.rskg.org/"' in get_zim_article(
         "/output/isago.zim", "A/index.html"
     )
 

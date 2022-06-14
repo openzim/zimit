@@ -1,14 +1,13 @@
-FROM webrecorder/browsertrix-crawler:0.5.0-beta.0
+FROM webrecorder/browsertrix-crawler:0.6.0-beta.1
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
+
+RUN apt-get update && apt-get install -qqy --no-install-recommends libmagic1 && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+RUN pip3.8 install --no-cache-dir 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13' 'warc2zim==1.4.0'
 
 RUN mkdir -p /output
 
 WORKDIR /app
-
-RUN apt-get update && apt-get install -qqy libmagic1
-
-RUN pip3.8 install 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13'
-RUN pip3.8 install git+https://github.com/openzim/warc2zim@video-replay-fixes#A
 
 # download list of bad domains to filter-out. intentionnaly ran post-install
 # so it's not cached in earlier layers (url stays same but content updated)

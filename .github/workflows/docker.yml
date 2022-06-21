@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build and push
-        uses: openzim/docker-publish-action@v5
+        uses: openzim/docker-publish-action@v9
         with:
           image-name: openzim/zimit
           on-master: dev
@@ -26,3 +26,5 @@ jobs:
             DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
             GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+          repo_description: auto
+          repo_overview: auto

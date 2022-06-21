@@ -8,7 +8,6 @@ This script validates arguments with warc2zim, checks permissions
 and then calls the Node based driver
 """
 
-import re
 import itertools
 from argparse import ArgumentParser
 import tempfile

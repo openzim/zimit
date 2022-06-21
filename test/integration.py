@@ -12,7 +12,7 @@ def get_zim_article(zimfile, path):
 
 
 def test_is_file():
-    """ Ensure ZIM file exists"""
+    """Ensure ZIM file exists"""
     assert os.path.isfile("/output/isago.zim")
 
 
@@ -26,7 +26,7 @@ def test_zim_main_page():
 
 
 def test_user_agent():
-    """ Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
+    """Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
 
     found = False
     for warc in glob.glob("/output/.tmp*/collections/crawl-*/archive/*.warc.gz"):
@@ -50,7 +50,7 @@ def test_stats_output():
             "numCrawled": 5,
             "workersRunning": 0,
             "total": 5,
-            "limit": {"max": 0, "hit": False}
+            "limit": {"max": 0, "hit": False},
         }
     with open("/output/warc2zim.json") as fh:
         assert json.loads(fh.read()) == {
@@ -61,5 +61,5 @@ def test_stats_output():
         assert json.loads(fh.read()) == {
             "done": 7,
             "total": 7,
-            "limit": {"max": 0, "hit": False}
+            "limit": {"max": 0, "hit": False},
         }

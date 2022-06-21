@@ -13,7 +13,7 @@ jobs:
         run: docker build -t zimit .
 
       - name: run crawl
-        run: docker run -v $PWD/output:/output zimit zimit --url http://isago.rskg.org/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice --statsFilename /output/stats.json --keep
+        run: docker run -v $PWD/output:/output zimit zimit --url http://isago.rskg.org/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice "iPhone 11" --statsFilename /output/stats.json --keep
 
       - name: run integration test suite
         run: docker run -v $PWD/test/integration.py:/app/integration.py -v $PWD/output:/output zimit bash -c "pip install pytest; pytest -v ./integration.py"

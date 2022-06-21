@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.8
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
@@ -125,6 +125,11 @@ def zimit(args=None):
 
     parser.add_argument("-u", "--url", help="The URL to start crawling from")
 
+    parser.add_argument(
+        "--urlFile",
+        help="If set, read a list of seed urls, " "one per line, from the specified",
+    )
+
     parser.add_argument("-w", "--workers", type=int, help="Number of parallel workers")
 
     parser.add_argument(
@@ -143,6 +148,17 @@ def zimit(args=None):
     )
 
     parser.add_argument(
+        "--depth", help="The depth of the crawl for all seeds", type=int, default=-1
+    )
+
+    parser.add_argument(
+        "--extraHops",
+        help="Number of extra 'hops' to follow, beyond the current scope",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
         "--limit", help="Limit crawl to this number of pages", type=int, default=0
     )
 
@@ -154,18 +170,107 @@ def zimit(args=None):
     )
 
     parser.add_argument(
-        "--scope",
-        help="Regex of page URLs that should be included in the crawl "
-        "(defaults to the immediate directory of the URL)",
+        "--scopeType",
+        help="A predfined scope of the crawl. For more customization, "
+        "use 'custom' and set scopeIncludeRx regexes",
+        choices=["page", "page-spa", "prefix", "host", "domain", "any", "custom"],
     )
 
     parser.add_argument(
-        "--exclude", help="Regex of page URLs that should be excluded from the crawl."
+        "--include",
+        help="Regex of page URLs that should be "
+        "included in the crawl (defaults to "
+        "the immediate directory of URL)",
     )
 
     parser.add_argument(
-        "--scroll",
-        help="If set, will autoscroll to bottom of the page",
+        "--exclude",
+        help="Regex of page URLs that should be excluded from the crawl",
+    )
+
+    parser.add_argument(
+        "--collection",
+        help="Collection name to crawl to (replay will be accessible "
+        "under this name in pywb preview) instead of crawl-@ts",
+    )
+
+    parser.add_argument(
+        "--allowHashUrls",
+        help="Allow Hashtag URLs, useful for "
+        "single-page-application crawling or "
+        "when different hashtags load dynamic "
+        "content",
+    )
+
+    parser.add_argument(
+        "--mobileDevice",
+        help="Emulate mobile device by name from "
+        "https://github.com/puppeteer/puppeteer/blob"
+        "/main/src/common/DeviceDescriptors.ts",
+    )
+
+    parser.add_argument(
+        "--userAgent",
+        help="Override user-agent with specified",
+    )
+
+    parser.add_argument(
+        "--userAgentSuffix",
+        help="Append suffix to existing browser user-agent "
+        "(ex: +MyCrawler, info@example.com)",
+        default="+Zimit ",
+    )
+
+    parser.add_argument(
+        "--useSitemap",
+        help="If set, use the URL as sitemap to get additional URLs for the crawl (usually /sitemap.xml)",
+    )
+
+    parser.add_argument(
+        "--behaviors",
+        help="Which background behaviors to enable on each page",
+        default="autoplay,autofetch,siteSpecific",
+    )
+
+    parser.add_argument(
+        "--behaviorTimeout",
+        help="If >0, timeout (in seconds) for in-page behavior will run on each page. "
+        "If 0, a behavior can run until finish",
+        type=int,
+        default=90,
+    )
+
+    parser.add_argument(
+        "--profile",
+        help="Path to tar.gz file which will be extracted "
+        "and used as the browser profile",
+    )
+
+    parser.add_argument(
+        "--sizeLimit",
+        help="If set, save state and exit if size limit exceeds this value",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
+        "--timeLimit",
+        help="If set, save state and exit after time limit, in seconds",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
+        "--healthCheckPort",
+        help="port to run healthcheck on",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
+        "--overwrite",
+        help="overwrite current crawl data: if set, existing collection directory "
+        "will be deleted before crawl is started",
         action="store_true",
         default=False,
     )
@@ -181,15 +286,6 @@ def zimit(args=None):
     )
 
     parser.add_argument("--adminEmail", help="Admin Email for Zimit crawler")
-
-    parser.add_argument(
-        "--mobileDevice", help="Crawl as Mobile Device", nargs="?", const="iPhone X"
-    )
-
-    parser.add_argument(
-        "--useSitemap",
-        help="If set, use the URL as sitemap to get additional URLs for the crawl (usually /sitemap.xml)",
-    )
 
     parser.add_argument(
         "--custom-css",
@@ -211,7 +307,7 @@ def zimit(args=None):
     url = zimit_args.url
 
     if url:
-        url = check_url(url, zimit_args.scope)
+        url = check_url(url, zimit_args.scopeType)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
 
@@ -244,7 +340,7 @@ def zimit(args=None):
         cmd_args.append("--url")
         cmd_args.append(url)
 
-    user_agent_suffix = "+Zimit "
+    user_agent_suffix = zimit_args.userAgentSuffix
     if zimit_args.adminEmail:
         user_agent_suffix += zimit_args.adminEmail
 
@@ -277,9 +373,13 @@ def zimit(args=None):
         f"Output to tempdir: {temp_root_dir} - {'will keep' if zimit_args.keep else 'will delete'}"
     )
     print(f"Running browsertrix-crawler crawl: {cmd_line}", flush=True)
-    subprocess.run(cmd_args, check=True)
+    crawl = subprocess.run(cmd_args)
+    if crawl.returncode == 11:
+        print("crawl interupted by a limit")
+    elif crawl.returncode != 0:
+        raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
 
-    warc_files = list(temp_root_dir.rglob("collections/capture-*/archive/"))[-1]
+    warc_files = list(temp_root_dir.rglob("collections/crawl-*/archive/"))[-1]
     warc2zim_args.append(str(warc_files))
 
     num_files = sum(1 for e in warc_files.iterdir())
@@ -300,22 +400,21 @@ def check_url(url, scope=None):
     actual_url = resp.url
 
     if actual_url != url:
-        # redirect on same domain or same first-level domain
-        if get_fld(url) == get_fld(actual_url):
+        if scope in (None, "any"):
             return actual_url
 
-        # is it in scope?
-        if scope:
-            try:
-                if re.match(scope, actual_url):
-                    return actual_url
-            except Exception as exc:
-                print(f"failed to parse your scope regexp for url checking: {exc}")
-
-        raise ValueError(
-            f"Main page URL ({url}) redirects to out-of-scope domain "
-            f"({actual_url}), cancelling crawl"
+        print(
+            "[WARN] Your URL ({0}) redirects to {1} which {2} on same "
+            "first-level domain. Depending on your scopeType ({3}), "
+            "your homepage might be out-of-scope. Please check!".format(
+                url,
+                actual_url,
+                "is" if get_fld(url) == get_fld(actual_url) else "is not",
+                scope,
+            )
         )
+
+        return actual_url
 
     return url
 
@@ -326,13 +425,26 @@ def get_node_cmd_line(args):
         "workers",
         "newContext",
         "waitUntil",
+        "urlFile",
+        "depth",
+        "extraHops",
         "limit",
         "timeout",
-        "scope",
+        "scopeType",
+        "include",
         "exclude",
-        "scroll",
+        "collection",
+        "allowHashUrls",
         "mobileDevice",
+        "userAgent",
         "useSitemap",
+        "behaviors",
+        "behaviorTimeout",
+        "profile",
+        "sizeLimit",
+        "timeLimit",
+        "healthCheckPort",
+        "overwrite",
     ]:
         value = getattr(args, arg)
         if value:

@@ -7,8 +7,8 @@ from warcio import ArchiveIterator
 
 
 def get_zim_article(zimfile, path):
-    zim_fh = libzim.reader.File(zimfile)
-    return zim_fh.get_article(path).content.tobytes()
+    zim_fh = libzim.reader.Archive(zimfile)
+    return zim_fh.get_entry_by_path(path).get_item().content.tobytes()
 
 
 def test_is_file():
@@ -29,7 +29,7 @@ def test_user_agent():
     """ Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
 
     found = False
-    for warc in glob.glob("/output/.tmp*/collections/capture-*/archive/*.warc.gz"):
+    for warc in glob.glob("/output/.tmp*/collections/crawl-*/archive/*.warc.gz"):
         with open(warc, "rb") as fh:
             for record in ArchiveIterator(fh):
                 if record.rec_type == "request":

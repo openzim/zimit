@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/bin/python3.8
+#!/usr/bin/env python3.8
 # -*- coding: utf-8 -*-
 # vim: ai ts=4 sts=4 et sw=4 nu
 
@@ -377,9 +377,7 @@ def zimit(args=None):
     if crawl.returncode == 11:
         print("crawl interupted by a limit")
     elif crawl.returncode != 0:
-        raise subprocess.CalledProcessError(
-            f"returned non-zero exit status {crawl.returncode}"
-        )
+        raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
 
     warc_files = list(temp_root_dir.rglob("collections/crawl-*/archive/"))[-1]
     warc2zim_args.append(str(warc_files))

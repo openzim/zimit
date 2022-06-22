@@ -8,24 +8,25 @@ This script validates arguments with warc2zim, checks permissions
 and then calls the Node based driver
 """
 
-import itertools
-from argparse import ArgumentParser
-import tempfile
-import subprocess
 import atexit
+import itertools
+import json
 import shutil
 import signal
+import subprocess
 import sys
-import json
-from pathlib import Path
+import tempfile
+import urllib.parse
+from argparse import ArgumentParser
 from multiprocessing import Process
-
-from warc2zim.main import warc2zim
-import requests
+from pathlib import Path
 
 import inotify
 import inotify.adapters
+import requests
 from tld import get_fld
+from warc2zim.main import warc2zim
+from zimscraperlib.uri import rebuild_uri
 
 
 class ProgressFileWatcher:
@@ -391,31 +392,42 @@ def zimit(args=None):
 
 
 def check_url(url, scope=None):
+    url = urllib.parse.urlparse(url)
     try:
-        resp = requests.head(url, stream=True, allow_redirects=True, timeout=10)
+        resp = requests.head(
+            url.geturl(), stream=True, allow_redirects=True, timeout=10
+        )
     except requests.exceptions.RequestException as exc:
         print(f"failed to connect to {url}: {exc}", flush=True)
         raise SystemExit(1)
-    actual_url = resp.url
+    actual_url = urllib.parse.urlparse(resp.url)
 
-    if actual_url != url:
+    # remove explicit port in URI for default-for-scheme as browsers does it
+    if actual_url.scheme == "https" and actual_url.port == 443:
+        actual_url = rebuild_uri(actual_url, port="")
+    if actual_url.scheme == "http" and actual_url.port == 80:
+        actual_url = rebuild_uri(actual_url, port="")
+
+    if actual_url.geturl() != url.geturl():
         if scope in (None, "any"):
-            return actual_url
+            return actual_url.geturl()
 
         print(
             "[WARN] Your URL ({0}) redirects to {1} which {2} on same "
             "first-level domain. Depending on your scopeType ({3}), "
             "your homepage might be out-of-scope. Please check!".format(
-                url,
-                actual_url,
-                "is" if get_fld(url) == get_fld(actual_url) else "is not",
+                url.geturl(),
+                actual_url.geturl(),
+                "is"
+                if get_fld(url.geturl()) == get_fld(actual_url.geturl())
+                else "is not",
                 scope,
             )
         )
 
-        return actual_url
+        return actual_url.geturl()
 
-    return url
+    return url.geturl()
 
 
 def get_node_cmd_line(args):

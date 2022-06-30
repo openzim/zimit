@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial url check normalizes homepage redirects to standart ports – 80/443 (#137)
 
+### Changed
+
+- Using warc2zim version xxx ⚠️ use released warc2zim before releasing
+
 ## [1.2.0] - 2022-06-21
 
 ### Added

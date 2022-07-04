@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Using warc2zim version xxx ⚠️ use released warc2zim before releasing
+- Using browsertrix-crawler 0.7 ⚠️ use non-beya before releasing
 
 ## [1.2.0] - 2022-06-21
 

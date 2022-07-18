@@ -200,6 +200,7 @@ def zimit(args=None):
         "single-page-application crawling or "
         "when different hashtags load dynamic "
         "content",
+        action="store_true",
     )
 
     parser.add_argument(

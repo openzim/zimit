@@ -396,10 +396,10 @@ def check_url(url, scope=None):
     url = urllib.parse.urlparse(url)
     try:
         resp = requests.head(
-            url.geturl(), stream=True, allow_redirects=True, timeout=10
+            url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27)
         )
     except requests.exceptions.RequestException as exc:
-        print(f"failed to connect to {url}: {exc}", flush=True)
+        print(f"failed to connect to {url.geturl()}: {exc}", flush=True)
         raise SystemExit(1)
     actual_url = urllib.parse.urlparse(resp.url)
 

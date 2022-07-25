@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using warc2zim version xxx ⚠️ use released warc2zim before releasing
 - Using browsertrix-crawler 0.7 ⚠️ use non-beya before releasing
 - Fixed `--allowHashUrls` being a boolean param
+- Increased `check_url` timeout (12s to connect, 27s to read) instead of 10s
 
 ## [1.2.0] - 2022-06-21
 

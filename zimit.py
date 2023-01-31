@@ -79,7 +79,7 @@ class ProgressFileWatcher:
             limit.max = data["limit"]["max"]
             limit.hit = data["limit"]["hit"]
             return {
-                "done": data["numCrawled"],
+                "done": data["crawled"],
                 "total": int(data["total"] / 0.9),
                 "limit": limit.as_dict,
             }

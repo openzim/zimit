@@ -47,8 +47,9 @@ def test_user_agent():
 def test_stats_output():
     with open("/output/crawl.json") as fh:
         assert json.loads(fh.read()) == {
-            "numCrawled": 5,
-            "workersRunning": 0,
+            "crawled": 5,
+            "pending": 0,
+            "pendingPages": [],
             "total": 5,
             "limit": {"max": 0, "hit": False},
         }

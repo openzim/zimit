@@ -48,15 +48,14 @@ The image accepts the following parameters, **as well as any of the [warc2zim](h
 - `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
 - `--keep` - if set, keep the WARC files in a temp directory inside the output directory
 
-The following is an example usage. The `--cap-add` and `--shm-size`
-flags are [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).
+The following is an example usage. The `--shm-size` flags is [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).
 
 Example command:
 
 ```bash
 docker run openzim/zimit zimit --help
 docker run openzim/zimit warc2zim --help
-docker run  -v /output:/output --cap-add=SYS_ADMIN --cap-add=NET_ADMIN \
+docker run  -v /output:/output \
        --shm-size=1gb openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
 ```
 

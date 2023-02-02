@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
 
-## [Unreleased]
+## [1.3.0] - 2023-02-02
 
 ### Added
 
@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Using warc2zim version xxx ⚠️ use released warc2zim before releasing (bump)
+- Using warc2zim version 1.5.0 with scope conflict fix and videos fix
 - Using browsertrix-crawler 0.8.0-beta.1
 - Fixed `--allowHashUrls` being a boolean param
 - Increased `check_url` timeout (12s to connect, 27s to read) instead of 10s

@@ -4,8 +4,7 @@ LABEL org.opencontainers.image.source https://github.com/openzim/zimit
 RUN apt-get update && apt-get install -qqy --no-install-recommends libmagic1 && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # temp (needs warc2zim release on zimit release)
-RUN pip3 install --no-cache-dir 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13' && \
-    pip3 install 'git+https://github.com/openzim/warc2zim@main#egg_name=warc2zim'
+RUN pip3 install --no-cache-dir 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13' 'warc2zim==1.5.0'
 
 RUN mkdir -p /output
 

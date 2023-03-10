@@ -26,5 +26,7 @@ ADD zimit.py /app/
 
 RUN ln -s /app/zimit.py /usr/bin/zimit
 
+RUN printf "repo_add_once=\"false\"\nrepo_reenable_on_distupgrade=\"false\"\n" > /etc/default/google-chrome
+
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["zimit"]

@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Retrieve source code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.4.0
 
       - name: Build and push
         uses: openzim/docker-publish-action@v9
@@ -24,9 +24,8 @@ jobs:
           tag-pattern: /^v([0-9.]+)$/
           latest-on-tag: true
           restrict-to: openzim/zimit
+          registries: ghcr.io
           credentials:
-            DOCKERIO_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERIO_TOKEN=${{ secrets.DOCKERHUB_PASSWORD }}
             GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           repo_description: auto

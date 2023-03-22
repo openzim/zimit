@@ -3,7 +3,7 @@ Zimit
 
 Zimit is a scraper allowing to create ZIM file from any Web site.
 
-[![Docker](https://img.shields.io/docker/v/openzim/zimit?label=docker&sort=semver)](https://hub.docker.com/r/openzim/zimit)
+[![Docker](https://ghcr-badge.deta.dev/openzim/zimit/latest_tag?label=docker)](https://ghcr.io/openzim/zimit)
 [![Build](https://github.com/openzim/zimit/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/openzim/zimit/actions?query=branch%3Amain)
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/zimit/badge)](https://www.codefactor.io/repository/github/openzim/zimit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -33,7 +33,7 @@ Usage
 To build locally run:
 
 ```bash
-docker build -t openzim/zimit .
+docker build -t ghcr.io/openzim/zimit .
 ```
 
 The image accepts the following parameters, **as well as any of the [warc2zim](https://github.com/openzim/warc2zim) ones**; useful for setting metadata, for instance:
@@ -53,16 +53,16 @@ The following is an example usage. The `--shm-size` flags is [needed to run Chro
 Example command:
 
 ```bash
-docker run openzim/zimit zimit --help
-docker run openzim/zimit warc2zim --help
+docker run ghcr.io/openzim/zimit zimit --help
+docker run ghcr.io/openzim/zimit warc2zim --help
 docker run  -v /output:/output \
-       --shm-size=1gb openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
+       --shm-size=1gb ghcr.ioopenzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
 ```
 
 The puppeteer-cluster provides monitoring output which is enabled by
 default and prints the crawl status to the Docker log.
 
-**Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" openzim/zimit ...`).
+**Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" ghcr.io/openzim/zimit ...`).
 
 Nota bene
 ---------

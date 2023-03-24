@@ -115,7 +115,7 @@ class ProgressFileWatcher:
 
 
 def zimit(args=None):
-    wait_until_options = ["load", "domcontentloaded", "networkidle0", "networkidle2"]
+    wait_until_options = ["load", "domcontentloaded", "networkidle"]
     wait_until_all = wait_until_options + [
         f"{a},{b}" for a, b in itertools.combinations(wait_until_options, 2)
     ]
@@ -133,18 +133,11 @@ def zimit(args=None):
     parser.add_argument("-w", "--workers", type=int, help="Number of parallel workers")
 
     parser.add_argument(
-        "--newContext",
-        help="The context for each new capture (page, session or browser).",
-        choices=["page", "session", "browser"],
-        default="page",
-    )
-
-    parser.add_argument(
         "--waitUntil",
         help="Puppeteer page.goto() condition to wait for before continuing. One of "
         f"{wait_until_options} or a comma-separated combination of those.",
         choices=wait_until_all,
-        default="load,networkidle0",
+        default="load",
     )
 
     parser.add_argument(
@@ -206,8 +199,8 @@ def zimit(args=None):
     parser.add_argument(
         "--mobileDevice",
         help="Emulate mobile device by name from "
-        "https://github.com/puppeteer/puppeteer/blob"
-        "/main/src/common/DeviceDescriptors.ts",
+        "https://github.com/microsoft/playwright/blob/main/packages/"
+        "playwright-core/src/server/deviceDescriptorsSource.json",
     )
 
     parser.add_argument(
@@ -435,7 +428,6 @@ def get_node_cmd_line(args):
     node_cmd = ["crawl"]
     for arg in [
         "workers",
-        "newContext",
         "waitUntil",
         "urlFile",
         "depth",

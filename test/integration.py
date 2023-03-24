@@ -36,7 +36,7 @@ def test_user_agent():
                     print(record.http_headers)
                     ua = record.http_headers.get_header("User-Agent")
                     if ua:
-                        assert "iPhone" in ua
+                        assert "Pixel" in ua
                         assert ua.endswith(" +Zimit test@example.com")
                         found = True
 
@@ -55,12 +55,12 @@ def test_stats_output():
         }
     with open("/output/warc2zim.json") as fh:
         assert json.loads(fh.read()) == {
-            "written": 7,
-            "total": 7,
+            "written": 9,
+            "total": 9,
         }
     with open("/output/stats.json") as fh:
         assert json.loads(fh.read()) == {
-            "done": 7,
-            "total": 7,
+            "done": 9,
+            "total": 9,
             "limit": {"max": 0, "hit": False},
         }

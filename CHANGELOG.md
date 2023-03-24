@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Using browsertrix-crawler 0.8.1
+- Using browsertrix-crawler 0.9.0-beta.1
+- Default and accepted values for `--waitUntil` from crawler's update
 - Using `main` warc2zim ⚠️ change before releasing!
 - Disabled Chrome updates to prevent incidental inclusion of update data in WARC/ZIM (#172)
+
+### Removed
+
+- `--newContext` from crawler's update
 
 ## [1.3.1] - 2023-02-06
 

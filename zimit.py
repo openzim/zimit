@@ -124,6 +124,8 @@ def zimit(args=None):
     )
 
     parser.add_argument("-u", "--url", help="The URL to start crawling from")
+    parser.add_argument("--title", help="ZIM title")
+    parser.add_argument("--description", help="ZIM description")
 
     parser.add_argument(
         "--urlFile",
@@ -153,6 +155,13 @@ def zimit(args=None):
 
     parser.add_argument(
         "--limit", help="Limit crawl to this number of pages", type=int, default=0
+    )
+
+    parser.add_argument(
+        "--maxPageLimit",
+        help="Maximum pages to crawl, overriding pageLimit if both are set",
+        type=int,
+        default=0,
     )
 
     parser.add_argument(
@@ -217,7 +226,8 @@ def zimit(args=None):
 
     parser.add_argument(
         "--useSitemap",
-        help="If set, use the URL as sitemap to get additional URLs for the crawl (usually /sitemap.xml)",
+        help="If set, use the URL as sitemap to get additional URLs for the crawl "
+        "(usually /sitemap.xml)",
     )
 
     parser.add_argument(
@@ -235,6 +245,14 @@ def zimit(args=None):
     )
 
     parser.add_argument(
+        "--delay",
+        help="If >0, amount of time to sleep (in seconds) after behaviors "
+        "before moving on to next page",
+        type=int,
+        default=0,
+    )
+
+    parser.add_argument(
         "--profile",
         help="Path to tar.gz file which will be extracted "
         "and used as the browser profile",
@@ -245,6 +263,14 @@ def zimit(args=None):
         help="If set, save state and exit if size limit exceeds this value",
         type=int,
         default=0,
+    )
+
+    parser.add_argument(
+        "--diskUtilization",
+        help="If set, save state and exit if diskutilization "
+        "exceeds this percentage value",
+        type=int,
+        default=90,
     )
 
     parser.add_argument(
@@ -307,6 +333,14 @@ def zimit(args=None):
 
     if zimit_args.custom_css:
         warc2zim_args += ["--custom-css", zimit_args.custom_css]
+
+    if zimit_args.title:
+        warc2zim_args.append("--title")
+        warc2zim_args.append(zimit_args.title)
+
+    if zimit_args.description:
+        warc2zim_args.append("--description")
+        warc2zim_args.append(zimit_args.description)
 
     print("----------")
     print("Testing warc2zim args")
@@ -430,9 +464,12 @@ def get_node_cmd_line(args):
         "workers",
         "waitUntil",
         "urlFile",
+        "title",
+        "description",
         "depth",
         "extraHops",
         "limit",
+        "maxPageLimit",
         "timeout",
         "scopeType",
         "include",
@@ -444,8 +481,10 @@ def get_node_cmd_line(args):
         "useSitemap",
         "behaviors",
         "behaviorTimeout",
+        "delay",
         "profile",
         "sizeLimit",
+        "diskUtilization",
         "timeLimit",
         "healthCheckPort",
         "overwrite",

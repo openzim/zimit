@@ -7,9 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `--title` to set ZIM title
+- `--description` to set ZIM description
+- New crawler options: `--maxPageLimit`, `--delay`, `--diskUtilization`
+
 ### Changed
 
-- Using browsertrix-crawler 0.9.0-beta.2
+- Using browsertrix-crawler 0.9.0
 - Default and accepted values for `--waitUntil` from crawler's update
 - Using `main` warc2zim ⚠️ change before releasing!
 - Disabled Chrome updates to prevent incidental inclusion of update data in WARC/ZIM (#172)

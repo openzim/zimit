@@ -51,6 +51,7 @@ def test_stats_output():
             "pending": 0,
             "pendingPages": [],
             "total": 5,
+            "failed": 0,
             "limit": {"max": 0, "hit": False},
         }
     with open("/output/warc2zim.json") as fh:

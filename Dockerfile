@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -qqy --no-install-recommends libmagic1 && 
 
 # temp (needs warc2zim release on zimit release)
 RUN pip3 install --no-cache-dir 'requests>=2.24.0' 'inotify==0.2.10' 'tld>=0.12,<0.13' 'warc2zim==1.5.1' && \
+    pip3 uninstall -y warc2zim && \
     pip3 install 'git+https://github.com/openzim/warc2zim@main#egg_name=warc2zim'
 
 RUN mkdir -p /output

@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:0.10.0-beta.0
+ FROM webrecorder/browsertrix-crawler:0.10.0-beta.3
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
 
 RUN apt-get update && apt-get install -qqy --no-install-recommends libmagic1 && apt-get clean && rm -rf /var/lib/apt/lists/*

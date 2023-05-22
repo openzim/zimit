@@ -459,7 +459,7 @@ def check_url(url, scope=None):
 
 
 def get_node_cmd_line(args):
-    node_cmd = ["crawl"]
+    node_cmd = ["crawl", "--failOnFailedSeed"]
     for arg in [
         "workers",
         "waitUntil",

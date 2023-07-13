@@ -56,7 +56,7 @@ Example command:
 docker run ghcr.io/openzim/zimit zimit --help
 docker run ghcr.io/openzim/zimit warc2zim --help
 docker run  -v /output:/output \
-       --shm-size=1gb ghcr.ioopenzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
+       --shm-size=1gb ghcr.io/openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
 ```
 
 The puppeteer-cluster provides monitoring output which is enabled by

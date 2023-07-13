@@ -317,6 +317,12 @@ def zimit(args=None):
         help="If set, output stats as JSON to this file",
     )
 
+    parser.add_argument(
+        "--config",
+        help="Path to YAML config file. If set, browsertrix-crawler will use this file"
+        "to configure the crawling behaviour if not set via argument.",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(args)
 
     # pass url and output to warc2zim also
@@ -488,6 +494,7 @@ def get_node_cmd_line(args):
         "timeLimit",
         "healthCheckPort",
         "overwrite",
+        "config",
     ]:
         value = getattr(args, arg)
         if value:

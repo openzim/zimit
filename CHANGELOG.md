@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--title` to set ZIM title
 - `--description` to set ZIM description
 - New crawler options: `--maxPageLimit`, `--delay`, `--diskUtilization`
+- `--zim-lang` param to set warc2zim's `--lang` (ISO-639-3)
 
 ### Changed
 
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using `main` warc2zim ⚠️ change before releasing!
 - Disabled Chrome updates to prevent incidental inclusion of update data in WARC/ZIM (#172)
 - `--failOnFailedSeed` used inconditionally
+- `--lang` now passed to crawler (ISO-639-1)
 
 ### Removed
 

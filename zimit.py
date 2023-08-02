@@ -206,6 +206,18 @@ def zimit(args=None):
     )
 
     parser.add_argument(
+        "--lang",
+        help="if set, sets the language used by the browser, should be ISO 639 language[-country] code",
+    )
+
+    parser.add_argument(
+        "--zim-lang",
+        help="Language metadata of ZIM "
+        "(warc2zim --lang param). ISO-639-3 code. "
+        "Retrieved from homepage if found, fallback to `eng`",
+    )
+
+    parser.add_argument(
         "--mobileDevice",
         help="Emulate mobile device by name from "
         "https://github.com/microsoft/playwright/blob/main/packages/"
@@ -348,6 +360,10 @@ def zimit(args=None):
         warc2zim_args.append("--description")
         warc2zim_args.append(zimit_args.description)
 
+    if zimit_args.zim_lang:
+        warc2zim_args.append("--lang")
+        warc2zim_args.append(zimit_args.zim_lang)
+
     print("----------")
     print("Testing warc2zim args")
     print("Running: warc2zim " + " ".join(warc2zim_args), flush=True)
@@ -482,6 +498,7 @@ def get_node_cmd_line(args):
         "exclude",
         "collection",
         "allowHashUrls",
+        "lang",
         "mobileDevice",
         "userAgent",
         "useSitemap",

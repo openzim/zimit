@@ -220,8 +220,8 @@ def zimit(args=None):
     parser.add_argument(
         "--mobileDevice",
         help="Emulate mobile device by name from "
-        "https://github.com/microsoft/playwright/blob/main/packages/"
-        "playwright-core/src/server/deviceDescriptorsSource.json",
+        "https://github.com/puppeteer/puppeteer/blob/"
+        "main/packages/puppeteer-core/src/common/Device.ts",
     )
 
     parser.add_argument(

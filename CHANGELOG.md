@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
+## [Unreleased]
+
+### Changed
+
+- Using browsertrix-crawler 0.10.3
+- Using warc2zim ⚠️⚠️ `main` branch
+
 ## [1.4.0] - 2023-08-02
 
 ### Added

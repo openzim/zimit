@@ -8,7 +8,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     # python setup (in venv not to conflict with browsertrix)
     && python3 -m venv /app/zimit \
-    && /app/zimit/bin/python -m pip install --no-cache-dir 'requests==2.31.0' 'inotify==0.2.10' 'tld==0.13' 'git+https://github.com/openzim/warc2zim@main#egg_name=warc2zim' \
+    && /app/zimit/bin/python -m pip install --no-cache-dir 'requests==2.31.0' 'inotify==0.2.10' 'tld==0.13' 'warc2zim==1.5.3' \
     # placeholder (default output location)
     && mkdir -p /output \
     # disable chrome upgrade

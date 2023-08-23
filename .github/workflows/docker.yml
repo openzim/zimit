@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Retrieve source code
-        uses: actions/checkout@v3.4.0
+        uses: actions/checkout@v3
 
       - name: Build and push
-        uses: openzim/docker-publish-action@v9
+        uses: openzim/docker-publish-action@v10
         with:
           image-name: openzim/zimit
           on-master: dev
@@ -30,3 +30,6 @@ jobs:
             GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
           repo_description: auto
           repo_overview: auto
+          platforms: |
+            linux/amd64
+            linux/arm64

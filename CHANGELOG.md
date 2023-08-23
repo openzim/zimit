@@ -9,8 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Using browsertrix-crawler 0.10.3
-- Using warc2zim ⚠️⚠️ `main` branch
+- Using browsertrix-crawler 0.10.4
+- Using warc2zim 1.5.3
 
 ## [1.4.0] - 2023-08-02
 

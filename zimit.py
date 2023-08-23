@@ -126,6 +126,7 @@ def zimit(args=None):
     parser.add_argument("-u", "--url", help="The URL to start crawling from")
     parser.add_argument("--title", help="ZIM title")
     parser.add_argument("--description", help="ZIM description")
+    parser.add_argument("--long-description", help="ZIM long description metadata")
 
     parser.add_argument(
         "--urlFile",
@@ -359,6 +360,10 @@ def zimit(args=None):
     if zimit_args.description:
         warc2zim_args.append("--description")
         warc2zim_args.append(zimit_args.description)
+
+    if zimit_args.long_description:
+        warc2zim_args.append("--long-description")
+        warc2zim_args.append(zimit_args.long_description)
 
     if zimit_args.zim_lang:
         warc2zim_args.append("--lang")

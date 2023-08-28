@@ -41,7 +41,6 @@ class ProgressFileWatcher:
         # touch them all so inotify is not unhappy on add_watch
         self.crawl_path.touch()
         self.warc2zim_path.touch()
-        self.stats_path.touch()
         self.process = None
 
     def stop(self):

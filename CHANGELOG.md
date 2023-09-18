@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Using browsertrix-crawler 0.11.0
 - Scraper stat file is not created empty (#211)
+- Crawler statistics are not available anymore (#213)
 - Using warc2zim 1.5.4
 
 ## [1.5.0] - 2023-08-23

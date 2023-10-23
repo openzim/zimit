@@ -451,6 +451,7 @@ def check_url(url, scope=None):
         resp = requests.head(
             url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27)
         )
+        resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         print(f"failed to connect to {url.geturl()}: {exc}", flush=True)
         raise SystemExit(1)

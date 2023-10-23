@@ -463,10 +463,10 @@ def zimit(args=None):
 def check_url(url, user_agent, scope=None):
     url = urllib.parse.urlparse(url)
     try:
-        resp = requests.head(
+        with requests.get(
             url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27), headers={"User-Agent": user_agent}
-        )
-        resp.raise_for_status()
+        ) as resp:
+            resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         print(f"failed to connect to {url.geturl()}: {exc}", flush=True)
         raise SystemExit(1)

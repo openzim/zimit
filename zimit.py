@@ -402,19 +402,8 @@ def zimit(args=None):
         cmd_args.append("--url")
         cmd_args.append(url)
 
-    if zimit_args.mobileDevice:
-        if zimit_args.userAgent != DEFAULT_USER_AGENT:
-            print("WARNING: --mobileDevice and --userAgent are both set ; userAgent won't be used for browsertrix crawl; only userAgentSuffix and adminEmail will be passed")
-
-        user_agent_suffix = zimit_args.userAgentSuffix
-        if zimit_args.adminEmail:
-            user_agent_suffix += f" {zimit_args.adminEmail}"
-
-        cmd_args.append("--userAgentSuffix")
-        cmd_args.append(user_agent_suffix)
-    else:
-        cmd_args.append("--userAgent")
-        cmd_args.append(user_agent)
+    cmd_args.append("--userAgent")
+    cmd_args.append(user_agent)
 
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))

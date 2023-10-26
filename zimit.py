@@ -28,6 +28,7 @@ from tld import get_fld
 from warc2zim.main import warc2zim
 from zimscraperlib.uri import rebuild_uri
 
+DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 
 class ProgressFileWatcher:
     def __init__(self, output_dir, stats_path):
@@ -226,14 +227,15 @@ def zimit(args=None):
 
     parser.add_argument(
         "--userAgent",
-        help="Override user-agent with specified",
+        help="Override default user-agent with specified value ; --userAgentSuffix is still applied",
+        default=DEFAULT_USER_AGENT
     )
 
     parser.add_argument(
         "--userAgentSuffix",
         help="Append suffix to existing browser user-agent "
         "(ex: +MyCrawler, info@example.com)",
-        default="+Zimit ",
+        default="+Zimit",
     )
 
     parser.add_argument(
@@ -344,8 +346,14 @@ def zimit(args=None):
 
     url = zimit_args.url
 
+    user_agent = zimit_args.userAgent
+    if zimit_args.userAgentSuffix:
+        user_agent += f" {zimit_args.userAgentSuffix}"
+    if zimit_args.adminEmail:
+        user_agent += f" {zimit_args.adminEmail}"
+
     if url:
-        url = check_url(url, zimit_args.scopeType)
+        url = check_url(url, user_agent, zimit_args.scopeType)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
 
@@ -394,12 +402,8 @@ def zimit(args=None):
         cmd_args.append("--url")
         cmd_args.append(url)
 
-    user_agent_suffix = zimit_args.userAgentSuffix
-    if zimit_args.adminEmail:
-        user_agent_suffix += zimit_args.adminEmail
-
-    cmd_args.append("--userAgentSuffix")
-    cmd_args.append(user_agent_suffix)
+    cmd_args.append("--userAgent")
+    cmd_args.append(user_agent)
 
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
@@ -445,13 +449,13 @@ def zimit(args=None):
     return warc2zim(warc2zim_args)
 
 
-def check_url(url, scope=None):
+def check_url(url, user_agent, scope=None):
     url = urllib.parse.urlparse(url)
     try:
-        resp = requests.head(
-            url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27)
-        )
-        resp.raise_for_status()
+        with requests.get(
+            url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27), headers={"User-Agent": user_agent}
+        ) as resp:
+            resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         print(f"failed to connect to {url.geturl()}: {exc}", flush=True)
         raise SystemExit(1)
@@ -505,7 +509,6 @@ def get_node_cmd_line(args):
         "allowHashUrls",
         "lang",
         "mobileDevice",
-        "userAgent",
         "useSitemap",
         "behaviors",
         "behaviorTimeout",

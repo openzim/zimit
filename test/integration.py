@@ -35,7 +35,9 @@ def test_user_agent():
                 if record.rec_type == "request":
                     print(record.http_headers)
                     ua = record.http_headers.get_header("User-Agent")
-                    # remove 'and ua != "undefined"' once https://github.com/webrecorder/browsertrix-crawler/pull/420 is released / used by us
+                    # remove 'and ua != "undefined"' once 
+                    # https://github.com/webrecorder/browsertrix-crawler/pull/420 is
+                    # released / used by us
                     if ua and ua != "undefined":
                         assert "Mozilla" in ua
                         assert ua.endswith(" +Zimit test@example.com")

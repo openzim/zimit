@@ -59,12 +59,12 @@ def test_stats_output():
         }
     with open("/output/warc2zim.json") as fh:
         assert json.loads(fh.read()) == {
-            "written": 9,
-            "total": 9,
+            "written": 10,
+            "total": 10,
         }
     with open("/output/stats.json") as fh:
         assert json.loads(fh.read()) == {
-            "done": 9,
-            "total": 9,
+            "done": 10,
+            "total": 10,
             "limit": {"max": 0, "hit": False},
         }

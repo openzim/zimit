@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:0.12.0-beta.2
+FROM webrecorder/browsertrix-crawler:0.12.0
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
 
 RUN apt-get update \

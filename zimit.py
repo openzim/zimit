@@ -151,18 +151,16 @@ def zimit(args=None):
         "--extraHops",
         help="Number of extra 'hops' to follow, beyond the current scope",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
-        "--limit", help="Limit crawl to this number of pages", type=int, default=0
+        "--limit", help="Limit crawl to this number of pages", type=int
     )
 
     parser.add_argument(
         "--maxPageLimit",
         help="Maximum pages to crawl, overriding pageLimit if both are set",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
@@ -263,7 +261,6 @@ def zimit(args=None):
         help="If >0, amount of time to sleep (in seconds) after behaviors "
         "before moving on to next page",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
@@ -276,7 +273,6 @@ def zimit(args=None):
         "--sizeLimit",
         help="If set, save state and exit if size limit exceeds this value",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
@@ -291,14 +287,12 @@ def zimit(args=None):
         "--timeLimit",
         help="If set, save state and exit after time limit, in seconds",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
         "--healthCheckPort",
         help="port to run healthcheck on",
         type=int,
-        default=0,
     )
 
     parser.add_argument(
@@ -522,10 +516,11 @@ def get_node_cmd_line(args):
         "config",
     ]:
         value = getattr(args, arg)
-        if value:
-            node_cmd.append("--" + arg)
-            if not isinstance(value, bool):
-                node_cmd.append(str(value))
+        if value == None or (isinstance(value, bool) and value == False):
+            continue
+        node_cmd.append("--" + arg)
+        if not isinstance(value, bool):
+            node_cmd.append(str(value))
 
     return node_cmd
 

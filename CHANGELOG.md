@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Changed
+
+- Using browsertrix-crawler 0.12.2
+
+### Fixed
+
+- Fix logic passing args to crawler to support value '0' (#245)
+
 ## [1.6.1] - 2023-11-06
 
 ### Changed

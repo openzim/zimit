@@ -13,10 +13,11 @@ Zimit is a scraper allowing to create ZIM file from any Web site.
 Technical background
 --------------------
 
-This version of Zimit runs a single-site headless-Chrome based crawl in a Docker container and produces a ZIM of the crawled content.
+Zimit runs a fully automated browser-based crawl of a website property and produces a ZIM of the crawled content. Zimit runs in a Docker container.
 
-The system extends the crawling system in [Browsertrix Crawler](https://github.com/webrecorder/browsertrix-crawler) and converts
-the crawled WARC files to ZIM using [warc2zim](https://github.com/openzim/warc2zim)
+The system:
+- runs a website crawl with [Browsertrix Crawler](https://github.com/webrecorder/browsertrix-crawler), which produces WARC files
+- converts the crawled WARC files to a single ZIM using [warc2zim](https://github.com/openzim/warc2zim)
 
 The `zimit.py` is the entrypoint for the system.
 

@@ -1,0 +1,27 @@
+[33mcommit 6e6c0e8b39b37f6fdcbe6a51ce7c925e6b1ed813[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;33mtag: v1.6.2[m[33m)[m
+Author: benoit74 <benoit74@users.noreply.github.com>
+Date:   Fri Nov 17 11:25:09 2023 +0100
+
+    Release 1.6.2
+
+[1mdiff --git a/CHANGELOG.md b/CHANGELOG.md[m
+[1mindex 6750466..58b186d 100644[m
+[1m--- a/CHANGELOG.md[m
+[1m+++ b/CHANGELOG.md[m
+[36m@@ -5,7 +5,7 @@[m [mAll notable changes to this project are documented in this file.[m
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),[m
+ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).[m
+ [m
+[31m-## Unreleased[m
+[32m+[m[32m## [1.6.2] - 2023-11-17[m
+ [m
+ ### Changed[m
+ [m
+[36m@@ -14,6 +14,7 @@[m [mand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0[m
+ ### Fixed[m
+ [m
+ - Fix logic passing args to crawler to support value '0' (#245)[m
+[32m+[m[32m- Fix documentation about Chrome and headless (#248)[m
+ [m
+ ## [1.6.1] - 2023-11-06[m
+ [m

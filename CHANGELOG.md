@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Using browsertrix-crawler 0.12.2
+- Using browsertrix-crawler 0.12.3
 
 ### Fixed
 

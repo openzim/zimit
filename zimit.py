@@ -311,9 +311,8 @@ def zimit(args=None):
     parser.add_argument("--output", help="Output directory for ZIM", default="/output")
 
     parser.add_argument(
-        "--tmp",
-        help="Temporary directory for WARC files (if not set, will be created"
-        "as a temporary subdir of output directory)",
+        "--build",
+        help="Build directory for WARC files (if not set, output directory is used)",
     )
 
     parser.add_argument("--adminEmail", help="Admin Email for Zimit crawler")
@@ -381,10 +380,10 @@ def zimit(args=None):
         print("Exiting, invalid warc2zim params")
         return 2
 
-    if zimit_args.tmp:
-        temp_root_dir = Path(zimit_args.tmp)
+    # make temp dir for this crawl
+    if zimit_args.build:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
     else:
-        # make temp dir for this crawl
         temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
@@ -438,27 +437,27 @@ def zimit(args=None):
         raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
 
     if zimit_args.collection:
-        warc_files = temp_root_dir.joinpath(
+        warc_directory = temp_root_dir.joinpath(
             f"collections/{zimit_args.collection}/archive/"
         )
     else:
-        warc_files = list(temp_root_dir.rglob("collections/crawl-*/archive/"))
-        if len(warc_files) == 0:
+        warc_dirs = list(temp_root_dir.rglob("collections/crawl-*/archive/"))
+        if len(warc_dirs) == 0:
             raise RuntimeError(
                 "Failed to find directory where WARC files have been created"
             )
-        elif len(warc_files) > 1:
+        elif len(warc_dirs) > 1:
             print("Found many WARC files directories, only last one will be used")
-            for directory in warc_files:
+            for directory in warc_dirs:
                 print(f"- {directory}")
-        warc_files = warc_files[-1]
+        warc_directory = warc_dirs[-1]
 
     print("")
     print("----------")
-    print(f"Processing WARC files in {warc_files}")
-    warc2zim_args.append(str(warc_files))
+    print(f"Processing WARC files in {warc_directory}")
+    warc2zim_args.append(str(warc_directory))
 
-    num_files = sum(1 for _ in warc_files.iterdir())
+    num_files = sum(1 for _ in warc_directory.iterdir())
     print(f"{num_files} WARC files found", flush=True)
     print(f"Calling warc2zim with these args: {warc2zim_args}", flush=True)
 

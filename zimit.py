@@ -460,6 +460,7 @@ def zimit(args=None):
 
     num_files = sum(1 for _ in warc_files.iterdir())
     print(f"{num_files} WARC files found", flush=True)
+    print(f"Calling warc2zim with these args: {warc2zim_args}", flush=True)
 
     return warc2zim(warc2zim_args)
 

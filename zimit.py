@@ -30,6 +30,7 @@ from zimscraperlib.uri import rebuild_uri
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 
+
 class ProgressFileWatcher:
     def __init__(self, output_dir, stats_path):
         self.crawl_path = output_dir / "crawl.json"
@@ -153,9 +154,7 @@ def zimit(args=None):
         type=int,
     )
 
-    parser.add_argument(
-        "--limit", help="Limit crawl to this number of pages", type=int
-    )
+    parser.add_argument("--limit", help="Limit crawl to this number of pages", type=int)
 
     parser.add_argument(
         "--maxPageLimit",
@@ -226,7 +225,7 @@ def zimit(args=None):
     parser.add_argument(
         "--userAgent",
         help="Override default user-agent with specified value ; --userAgentSuffix is still applied",
-        default=DEFAULT_USER_AGENT
+        default=DEFAULT_USER_AGENT,
     )
 
     parser.add_argument(
@@ -309,8 +308,11 @@ def zimit(args=None):
         action="store_true",
     )
 
+    parser.add_argument("--output", help="Output directory for ZIM", default="/output")
+
     parser.add_argument(
-        "--output", help="Output directory for ZIM and WARC files", default="/output"
+        "--build",
+        help="Build directory for WARC files (if not set, output directory is used)",
     )
 
     parser.add_argument("--adminEmail", help="Admin Email for Zimit crawler")
@@ -379,7 +381,10 @@ def zimit(args=None):
         return 2
 
     # make temp dir for this crawl
-    temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
+    if zimit_args.build:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
+    else:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
 
@@ -431,14 +436,30 @@ def zimit(args=None):
     elif crawl.returncode != 0:
         raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
 
-    warc_files = list(temp_root_dir.rglob("collections/crawl-*/archive/"))[-1]
-    warc2zim_args.append(str(warc_files))
-
-    num_files = sum(1 for e in warc_files.iterdir())
+    if zimit_args.collection:
+        warc_directory = temp_root_dir.joinpath(
+            f"collections/{zimit_args.collection}/archive/"
+        )
+    else:
+        warc_dirs = list(temp_root_dir.rglob("collections/crawl-*/archive/"))
+        if len(warc_dirs) == 0:
+            raise RuntimeError(
+                "Failed to find directory where WARC files have been created"
+            )
+        elif len(warc_dirs) > 1:
+            print("Found many WARC files directories, only last one will be used")
+            for directory in warc_dirs:
+                print(f"- {directory}")
+        warc_directory = warc_dirs[-1]
 
     print("")
     print("----------")
-    print(f"Processing {num_files} WARC files to ZIM", flush=True)
+    print(f"Processing WARC files in {warc_directory}")
+    warc2zim_args.append(str(warc_directory))
+
+    num_files = sum(1 for _ in warc_directory.iterdir())
+    print(f"{num_files} WARC files found", flush=True)
+    print(f"Calling warc2zim with these args: {warc2zim_args}", flush=True)
 
     return warc2zim(warc2zim_args)
 
@@ -447,7 +468,11 @@ def check_url(url, user_agent, scope=None):
     url = urllib.parse.urlparse(url)
     try:
         with requests.get(
-            url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27), headers={"User-Agent": user_agent}
+            url.geturl(),
+            stream=True,
+            allow_redirects=True,
+            timeout=(12.2, 27),
+            headers={"User-Agent": user_agent},
         ) as resp:
             resp.raise_for_status()
     except requests.exceptions.RequestException as exc:

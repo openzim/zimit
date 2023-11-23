@@ -30,6 +30,7 @@ from zimscraperlib.uri import rebuild_uri
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
 
+
 class ProgressFileWatcher:
     def __init__(self, output_dir, stats_path):
         self.crawl_path = output_dir / "crawl.json"
@@ -153,9 +154,7 @@ def zimit(args=None):
         type=int,
     )
 
-    parser.add_argument(
-        "--limit", help="Limit crawl to this number of pages", type=int
-    )
+    parser.add_argument("--limit", help="Limit crawl to this number of pages", type=int)
 
     parser.add_argument(
         "--maxPageLimit",
@@ -226,7 +225,7 @@ def zimit(args=None):
     parser.add_argument(
         "--userAgent",
         help="Override default user-agent with specified value ; --userAgentSuffix is still applied",
-        default=DEFAULT_USER_AGENT
+        default=DEFAULT_USER_AGENT,
     )
 
     parser.add_argument(
@@ -447,7 +446,11 @@ def check_url(url, user_agent, scope=None):
     url = urllib.parse.urlparse(url)
     try:
         with requests.get(
-            url.geturl(), stream=True, allow_redirects=True, timeout=(12.2, 27), headers={"User-Agent": user_agent}
+            url.geturl(),
+            stream=True,
+            allow_redirects=True,
+            timeout=(12.2, 27),
+            headers={"User-Agent": user_agent},
         ) as resp:
             resp.raise_for_status()
     except requests.exceptions.RequestException as exc:

@@ -25,7 +25,7 @@ import inotify
 import inotify.adapters
 import requests
 from tld import get_fld
-from warc2zim.main import warc2zim
+from warc2zim.main import main as warc2zim
 from zimscraperlib.uri import rebuild_uri
 
 DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"

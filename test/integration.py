@@ -6,9 +6,9 @@ import libzim.reader
 from warcio import ArchiveIterator
 
 
-def get_zim_article(zimfile, path):
+def get_zim_main_entry(zimfile):
     zim_fh = libzim.reader.Archive(zimfile)
-    return zim_fh.get_entry_by_path(path).get_item().content.tobytes()
+    return zim_fh.main_entry
 
 
 def test_is_file():
@@ -20,9 +20,9 @@ def test_zim_main_page():
     """Main page specified, http://isago.rskg.org/, was a redirect to https
     Ensure main page is the redirected page"""
 
-    assert b'"https://isago.rskg.org/"' in get_zim_article(
-        "/output/isago.zim", "A/index.html"
-    )
+    main_entry = get_zim_main_entry("/output/isago.zim")
+    assert main_entry.is_redirect
+    assert main_entry.get_redirect_entry().path == "isago.rskg.org/"
 
 
 def test_user_agent():

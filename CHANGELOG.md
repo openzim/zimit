@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Adapt to new `warc2zim` code structure
-- Using `main` warc2zim ⚠️ change before releasing!
+- Use `warc2zim` version 2, which works without Service Worker anymore
+- Using `warc2zim2` warc2zim ⚠️ change before releasing!
 
 ### Added
 

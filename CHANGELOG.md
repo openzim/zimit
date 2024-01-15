@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+### Changed
+
+- Adapt to new `warc2zim` code structure
+- Using `main` warc2zim ⚠️ change before releasing!
+
 ### Added
 
 - New `--build` parameter (optional) to specify the directory holding Browsertrix files ; if not set, `--output`

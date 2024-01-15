@@ -1,0 +1,31 @@
+name: Docker Zimit2
+
+on:
+  push:
+    branches:
+      - zimit2
+
+jobs:
+  build-and-push:
+    name: Deploy Docker Image
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Retrieve source code
+        uses: actions/checkout@v3
+
+      - name: Build and push
+        uses: openzim/docker-publish-action@v10
+        with:
+          image-name: openzim/zimit
+          manual-tag: zimit2
+          restrict-to: openzim/zimit
+          registries: ghcr.io
+          credentials:
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+          repo_description: auto
+          repo_overview: auto
+          platforms: |
+            linux/amd64
+            linux/arm64

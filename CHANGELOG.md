@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using `warc2zim2` warc2zim ⚠️ change before releasing!
 - Build temporary `zimit2` Docker image for testing ⚠️ remove before releasing!
 
+## [1.6.3] - 2024-01-18
+
+### Changed
+
+- Adapt to new `warc2zim` code structure
+- Using browsertrix-crawler 0.12.4
+- Using warc2zim 1.5.5
+
 ### Added
 
 - New `--build` parameter (optional) to specify the directory holding Browsertrix files ; if not set, `--output`

@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Adapt to new `warc2zim` code structure
-- Using `main` warc2zim ⚠️ change before releasing!
+- Using browsertrix-crawler 0.12.4
+- Using warc2zim 1.5.5
 
 ### Added
 

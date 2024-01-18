@@ -1,24 +1,23 @@
-name: Docker Zimit2
+name: Publish Docker dev image
 
 on:
   push:
     branches:
-      - zimit2
+      - main
 
 jobs:
-  build-and-push:
-    name: Deploy Docker Image
+  publish:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Retrieve source code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Build and push
+      - name: Build and push Docker image
         uses: openzim/docker-publish-action@v10
         with:
           image-name: openzim/zimit
-          manual-tag: zimit2
+          manual-tag: dev
+          latest-on-tag: false
           restrict-to: openzim/zimit
           registries: ghcr.io
           credentials:

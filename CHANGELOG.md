@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `--version` flag to display Zimit version
 
 ### Changed
 
 - Use `warc2zim` version 2, which works without Service Worker anymore
 - Using `warc2zim2` warc2zim ⚠️ change before releasing!
 - Build temporary `zimit2` Docker image for testing ⚠️ remove before releasing!
+- Adopt Python bootstrap conventions
 
 ## [1.6.3] - 2024-01-18
 
@@ -156,7 +160,7 @@ if `--keep` is set.
 ### Changed
 
 - using browsertrix-crawler `0.6.0` and warc2zim `1.4.2`
-- default WARC location after crawl changed 
+- default WARC location after crawl changed
 from `collections/capture-*/archive/` to `collections/crawl-*/archive/`
 
 ### Removed

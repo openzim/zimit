@@ -1,0 +1,34 @@
+name: QA
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-qa:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version-file: pyproject.toml
+          architecture: x64
+
+      - name: Install dependencies (and project)
+        run: |
+          pip install -U pip
+          pip install -e .[lint,scripts,test,check]
+
+      - name: Check black formatting
+        run: inv lint-black
+
+      - name: Check ruff
+        run: inv lint-ruff
+
+      - name: Check pyright
+        run: inv check-pyright

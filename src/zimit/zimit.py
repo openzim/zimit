@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# vim: ai ts=4 sts=4 et sw=4 nu
-
 """
 Main zimit run script
 This script validates arguments with warc2zim, checks permissions
@@ -11,6 +7,7 @@ and then calls the Node based driver
 import atexit
 import itertools
 import json
+import logging
 import shutil
 import signal
 import subprocess
@@ -26,16 +23,28 @@ import inotify.adapters
 import requests
 from tld import get_fld
 from warc2zim.main import main as warc2zim
+from zimscraperlib.logging import getLogger
 from zimscraperlib.uri import rebuild_uri
 
-DEFAULT_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+from zimit.__about__ import __version__
+
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
+    "(KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+)
+
+EXIT_CODE_WARC2ZIM_CHECK_FAILED = 2
+EXIT_CODE_CRAWLER_LIMIT_HIT = 11
+NORMAL_WARC2ZIM_EXIT_CODE = 100
+
+logger = getLogger(name="zimit", level=logging.INFO)
 
 
 class ProgressFileWatcher:
-    def __init__(self, output_dir, stats_path):
+    def __init__(self, output_dir: Path, stats_path: Path):
         self.crawl_path = output_dir / "crawl.json"
         self.warc2zim_path = output_dir / "warc2zim.json"
-        self.stats_path = Path(stats_path)
+        self.stats_path = stats_path
 
         if not self.stats_path.is_absolute():
             self.stats_path = output_dir / self.stats_path
@@ -46,6 +55,8 @@ class ProgressFileWatcher:
         self.process = None
 
     def stop(self):
+        if not self.process:
+            return
         self.process.join(0.1)
         self.process.terminate()
 
@@ -58,10 +69,10 @@ class ProgressFileWatcher:
         self.process.start()
 
     @staticmethod
-    def inotify_watcher(crawl_fpath, warc2zim_fpath, output_fpath):
+    def inotify_watcher(crawl_fpath: str, warc2zim_fpath: str, output_fpath: str):
         ino = inotify.adapters.Inotify()
-        ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)
-        ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)
+        ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
+        ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
 
         class Limit:
             def __init__(self):
@@ -97,15 +108,15 @@ class ProgressFileWatcher:
                 "limit": limit.as_dict,
             }
 
-        for _, _, fpath, _ in ino.event_gen(yield_nones=False):
+        for _, _, fpath, _ in ino.event_gen(yield_nones=False):  # pyright: ignore
             func = {crawl_fpath: crawl_conv, warc2zim_fpath: warc2zim_conv}.get(fpath)
             if not func:
                 continue
             # open input and output separatly as to not clear output on error
-            with open(fpath, "r") as ifh:
+            with open(fpath) as ifh:
                 try:
                     out = func(json.load(ifh), limit)
-                except Exception:  # nosec
+                except Exception:  # nosec # noqa: S112
                     # simply ignore progress update should an error arise
                     # might be malformed input for instance
                     continue
@@ -115,7 +126,7 @@ class ProgressFileWatcher:
                     json.dump(out, ofh)
 
 
-def zimit(args=None):
+def run(raw_args):
     wait_until_options = ["load", "domcontentloaded", "networkidle"]
     wait_until_all = wait_until_options + [
         f"{a},{b}" for a, b in itertools.combinations(wait_until_options, 2)
@@ -131,7 +142,7 @@ def zimit(args=None):
 
     parser.add_argument(
         "--urlFile",
-        help="If set, read a list of seed urls, " "one per line, from the specified",
+        help="If set, read a list of seed urls, one per line, from the specified",
     )
 
     parser.add_argument("-w", "--workers", type=int, help="Number of parallel workers")
@@ -205,7 +216,8 @@ def zimit(args=None):
 
     parser.add_argument(
         "--lang",
-        help="if set, sets the language used by the browser, should be ISO 639 language[-country] code",
+        help="if set, sets the language used by the browser, should be ISO 639 "
+        "language[-country] code",
     )
 
     parser.add_argument(
@@ -224,7 +236,8 @@ def zimit(args=None):
 
     parser.add_argument(
         "--userAgent",
-        help="Override default user-agent with specified value ; --userAgentSuffix is still applied",
+        help="Override default user-agent with specified value ; --userAgentSuffix is "
+        "still applied",
         default=DEFAULT_USER_AGENT,
     )
 
@@ -333,7 +346,14 @@ def zimit(args=None):
         "to configure the crawling behaviour if not set via argument.",
     )
 
-    zimit_args, warc2zim_args = parser.parse_known_args(args)
+    parser.add_argument(
+        "--version",
+        help="Display scraper version and exit",
+        action="version",
+        version=f"Zimit {__version__}",
+    )
+
+    zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     # pass url and output to warc2zim also
     if zimit_args.output:
@@ -372,13 +392,13 @@ def zimit(args=None):
         warc2zim_args.append("--lang")
         warc2zim_args.append(zimit_args.zim_lang)
 
-    print("----------")
-    print("Testing warc2zim args")
-    print("Running: warc2zim " + " ".join(warc2zim_args), flush=True)
+    logger.info("----------")
+    logger.info("Testing warc2zim args")
+    logger.info("Running: warc2zim " + " ".join(warc2zim_args))
     res = warc2zim(warc2zim_args)
-    if res != 100:
-        print("Exiting, invalid warc2zim params")
-        return 2
+    if res != NORMAL_WARC2ZIM_EXIT_CODE:
+        logger.info("Exiting, invalid warc2zim params")
+        return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
     # make temp dir for this crawl
     if zimit_args.build:
@@ -389,9 +409,9 @@ def zimit(args=None):
     if not zimit_args.keep:
 
         def cleanup():
-            print("")
-            print("----------")
-            print(f"Cleanup, removing temp dir: {temp_root_dir}", flush=True)
+            logger.info("")
+            logger.info("----------")
+            logger.info(f"Cleanup, removing temp dir: {temp_root_dir}")
             shutil.rmtree(temp_root_dir)
 
         atexit.register(cleanup)
@@ -412,7 +432,7 @@ def zimit(args=None):
         watcher = ProgressFileWatcher(
             Path(zimit_args.output), Path(zimit_args.statsFilename)
         )
-        print(f"Writing progress to {watcher.stats_path}")
+        logger.info(f"Writing progress to {watcher.stats_path}")
         # update crawler command
         cmd_args.append("--statsFilename")
         cmd_args.append(str(watcher.crawl_path))
@@ -424,15 +444,16 @@ def zimit(args=None):
 
     cmd_line = " ".join(cmd_args)
 
-    print("")
-    print("----------")
-    print(
-        f"Output to tempdir: {temp_root_dir} - {'will keep' if zimit_args.keep else 'will delete'}"
+    logger.info("")
+    logger.info("----------")
+    logger.info(
+        f"Output to tempdir: {temp_root_dir} - "
+        f"{'will keep' if zimit_args.keep else 'will delete'}"
     )
-    print(f"Running browsertrix-crawler crawl: {cmd_line}", flush=True)
-    crawl = subprocess.run(cmd_args)
-    if crawl.returncode == 11:
-        print("crawl interupted by a limit")
+    logger.info(f"Running browsertrix-crawler crawl: {cmd_line}")
+    crawl = subprocess.run(cmd_args, check=False)
+    if crawl.returncode == EXIT_CODE_CRAWLER_LIMIT_HIT:
+        logger.info("crawl interupted by a limit")
     elif crawl.returncode != 0:
         raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
 
@@ -447,28 +468,28 @@ def zimit(args=None):
                 "Failed to find directory where WARC files have been created"
             )
         elif len(warc_dirs) > 1:
-            print("Found many WARC files directories, only last one will be used")
+            logger.info("Found many WARC files directories, only last one will be used")
             for directory in warc_dirs:
-                print(f"- {directory}")
+                logger.info(f"- {directory}")
         warc_directory = warc_dirs[-1]
 
-    print("")
-    print("----------")
-    print(f"Processing WARC files in {warc_directory}")
+    logger.info("")
+    logger.info("----------")
+    logger.info(f"Processing WARC files in {warc_directory}")
     warc2zim_args.append(str(warc_directory))
 
     num_files = sum(1 for _ in warc_directory.iterdir())
-    print(f"{num_files} WARC files found", flush=True)
-    print(f"Calling warc2zim with these args: {warc2zim_args}", flush=True)
+    logger.info(f"{num_files} WARC files found")
+    logger.info(f"Calling warc2zim with these args: {warc2zim_args}")
 
     return warc2zim(warc2zim_args)
 
 
-def check_url(url, user_agent, scope=None):
-    url = urllib.parse.urlparse(url)
+def check_url(url: str, user_agent: str, scope: str | None = None):
+    parsed_url = urllib.parse.urlparse(url)
     try:
         with requests.get(
-            url.geturl(),
+            parsed_url.geturl(),
             stream=True,
             allow_redirects=True,
             timeout=(12.2, 27),
@@ -476,28 +497,28 @@ def check_url(url, user_agent, scope=None):
         ) as resp:
             resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
-        print(f"failed to connect to {url.geturl()}: {exc}", flush=True)
-        raise SystemExit(1)
+        logger.info(f"failed to connect to {parsed_url.geturl()}: {exc}")
+        raise SystemExit(1) from None
     actual_url = urllib.parse.urlparse(resp.url)
 
     # remove explicit port in URI for default-for-scheme as browsers does it
-    if actual_url.scheme == "https" and actual_url.port == 443:
+    if actual_url.scheme == "https" and actual_url.port == 443:  # noqa: PLR2004
         actual_url = rebuild_uri(actual_url, port="")
-    if actual_url.scheme == "http" and actual_url.port == 80:
+    if actual_url.scheme == "http" and actual_url.port == 80:  # noqa: PLR2004
         actual_url = rebuild_uri(actual_url, port="")
 
-    if actual_url.geturl() != url.geturl():
+    if actual_url.geturl() != parsed_url.geturl():
         if scope in (None, "any"):
             return actual_url.geturl()
 
-        print(
-            "[WARN] Your URL ({0}) redirects to {1} which {2} on same "
-            "first-level domain. Depending on your scopeType ({3}), "
+        logger.info(
+            "[WARN] Your URL ({}) redirects to {} which {} on same "
+            "first-level domain. Depending on your scopeType ({}), "
             "your homepage might be out-of-scope. Please check!".format(
-                url.geturl(),
+                parsed_url.geturl(),
                 actual_url.geturl(),
                 "is"
-                if get_fld(url.geturl()) == get_fld(actual_url.geturl())
+                if get_fld(parsed_url.geturl()) == get_fld(actual_url.geturl())
                 else "is not",
                 scope,
             )
@@ -505,7 +526,7 @@ def check_url(url, user_agent, scope=None):
 
         return actual_url.geturl()
 
-    return url.geturl()
+    return parsed_url.geturl()
 
 
 def get_node_cmd_line(args):
@@ -541,7 +562,7 @@ def get_node_cmd_line(args):
         "config",
     ]:
         value = getattr(args, arg)
-        if value == None or (isinstance(value, bool) and value == False):
+        if value is None or (isinstance(value, bool) and value is False):
             continue
         node_cmd.append("--" + arg)
         if not isinstance(value, bool):
@@ -550,17 +571,22 @@ def get_node_cmd_line(args):
     return node_cmd
 
 
-def sigint_handler(*args):
-    print("")
-    print("")
-    print("SIGINT/SIGTERM received, stopping zimit")
-    print("")
-    print("", flush=True)
+def sigint_handler(*args):  # noqa: ARG001
+    logger.info("")
+    logger.info("")
+    logger.info("SIGINT/SIGTERM received, stopping zimit")
+    logger.info("")
+    logger.info("")
     sys.exit(3)
+
+
+def zimit():
+    run(sys.argv[1:])
 
 
 signal.signal(signal.SIGINT, sigint_handler)
 signal.signal(signal.SIGTERM, sigint_handler)
+
 
 if __name__ == "__main__":
     zimit()

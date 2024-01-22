@@ -1,6 +1,6 @@
-import os
 import glob
 import json
+import os
 
 import libzim.reader
 from warcio import ArchiveIterator
@@ -26,14 +26,17 @@ def test_zim_main_page():
 
 
 def test_user_agent():
-    """Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
+    """Test that mobile user agent was used
+
+    Check is done in WARC request records with custom Zimit and email suffix
+    """
 
     found = False
     for warc in glob.glob("/output/.tmp*/collections/crawl-*/archive/*.warc.gz"):
         with open(warc, "rb") as fh:
             for record in ArchiveIterator(fh):
                 if record.rec_type == "request":
-                    print(record.http_headers)
+                    print(record.http_headers)  # noqa: T201
                     ua = record.http_headers.get_header("User-Agent")
                     if ua:
                         assert "Mozilla" in ua

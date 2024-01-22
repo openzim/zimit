@@ -37,9 +37,7 @@ EXIT_CODE_WARC2ZIM_CHECK_FAILED = 2
 EXIT_CODE_CRAWLER_LIMIT_HIT = 11
 NORMAL_WARC2ZIM_EXIT_CODE = 100
 
-LOGGER_NAME = Path(__file__).parent.name
-
-logger = getLogger(name=LOGGER_NAME, level=logging.INFO)
+logger = getLogger(name="zimit", level=logging.INFO)
 
 
 class ProgressFileWatcher:

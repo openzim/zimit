@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - New `--version` flag to display Zimit version
+- New `--logging` flag to adjust Browsertrix Crawler logging (#273)
 
 ### Changed
 

@@ -353,6 +353,11 @@ def run(raw_args):
         version=f"Zimit {__version__}",
     )
 
+    parser.add_argument(
+        "--logging",
+        help="Crawler logging configuration",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     # pass url and output to warc2zim also
@@ -560,6 +565,7 @@ def get_node_cmd_line(args):
         "healthCheckPort",
         "overwrite",
         "config",
+        "logging",
     ]:
         value = getattr(args, arg)
         if value is None or (isinstance(value, bool) and value is False):

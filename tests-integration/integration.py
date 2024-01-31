@@ -2,13 +2,9 @@ import glob
 import json
 import os
 
-import libzim.reader
+from libzim.reader import Archive as LibzimArchive
 from warcio import ArchiveIterator
-
-
-def get_zim_main_entry(zimfile):
-    zim_fh = libzim.reader.Archive(zimfile)
-    return zim_fh.main_entry
+from zimscraperlib.zim import Archive as ScraperLibArchive
 
 
 def test_is_file():
@@ -20,9 +16,20 @@ def test_zim_main_page():
     """Main page specified, http://isago.rskg.org/, was a redirect to https
     Ensure main page is the redirected page"""
 
-    main_entry = get_zim_main_entry("/output/isago.zim")
+    main_entry = LibzimArchive("/output/isago.zim").main_entry
     assert main_entry.is_redirect
     assert main_entry.get_redirect_entry().path == "isago.rskg.org/"
+
+
+def test_zim_scraper():
+    """Main page specified, http://isago.rskg.org/, was a redirect to https
+    Ensure main page is the redirected page"""
+
+    zim_fh = ScraperLibArchive("/output/isago.zim")
+    scraper = zim_fh.get_text_metadata("Scraper")
+    assert "zimit " in scraper
+    assert "warc2zim " in scraper
+    assert "Browsertrix crawler " in scraper
 
 
 def test_user_agent():

@@ -360,6 +360,25 @@ def run(raw_args):
 
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
+    logger.info("Checking browsertrix-crawler version")
+    crawl_version_cmd = ["crawl", "--version"]
+    try:
+        crawl = subprocess.run(
+            crawl_version_cmd, check=True, capture_output=True, text=True
+        )
+    except Exception:
+        logger.error("Failed to get Browsertrix crawler version")
+        raise
+    crawler_version = crawl.stdout
+    logger.info(f"Browsertrix crawler: version {crawler_version}")
+
+    # pass a scraper suffix to warc2zim so that both zimit, warc2zim and crawler
+    # versions are associated with the ZIM
+    warc2zim_args.append("--scraper-suffix")
+    warc2zim_args.append(
+        f" + zimit {__version__} + Browsertrix crawler {crawler_version}"
+    )
+
     # pass url and output to warc2zim also
     if zimit_args.output:
         warc2zim_args.append("--output")
@@ -522,9 +541,11 @@ def check_url(url: str, user_agent: str, scope: str | None = None):
             "your homepage might be out-of-scope. Please check!".format(
                 parsed_url.geturl(),
                 actual_url.geturl(),
-                "is"
-                if get_fld(parsed_url.geturl()) == get_fld(actual_url.geturl())
-                else "is not",
+                (
+                    "is"
+                    if get_fld(parsed_url.geturl()) == get_fld(actual_url.geturl())
+                    else "is not"
+                ),
                 scope,
             )
         )

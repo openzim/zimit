@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - New `--version` flag to display Zimit version
 - New `--logging` flag to adjust Browsertrix Crawler logging (#273)
+- Use new `--scraper-suffix` flag of warc2zim to enhance ZIM "Scraper" metadata (#275)
 
 ### Changed
 

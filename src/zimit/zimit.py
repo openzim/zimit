@@ -20,8 +20,6 @@ from pathlib import Path
 
 import inotify
 import inotify.adapters
-import requests
-from tld import get_fld
 from warc2zim.main import main as warc2zim
 from zimscraperlib.logging import getLogger
 from zimscraperlib.uri import rebuild_uri
@@ -393,7 +391,7 @@ def run(raw_args):
         user_agent += f" {zimit_args.adminEmail}"
 
     if url:
-        url = check_url(url, user_agent, zimit_args.scopeType)
+        url = clean_url(url)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
 
@@ -509,48 +507,14 @@ def run(raw_args):
     return warc2zim(warc2zim_args)
 
 
-def check_url(url: str, user_agent: str, scope: str | None = None):
+def clean_url(url: str):
     parsed_url = urllib.parse.urlparse(url)
-    try:
-        with requests.get(
-            parsed_url.geturl(),
-            stream=True,
-            allow_redirects=True,
-            timeout=(12.2, 27),
-            headers={"User-Agent": user_agent},
-        ) as resp:
-            resp.raise_for_status()
-    except requests.exceptions.RequestException as exc:
-        logger.info(f"failed to connect to {parsed_url.geturl()}: {exc}")
-        raise SystemExit(1) from None
-    actual_url = urllib.parse.urlparse(resp.url)
 
     # remove explicit port in URI for default-for-scheme as browsers does it
-    if actual_url.scheme == "https" and actual_url.port == 443:  # noqa: PLR2004
-        actual_url = rebuild_uri(actual_url, port="")
-    if actual_url.scheme == "http" and actual_url.port == 80:  # noqa: PLR2004
-        actual_url = rebuild_uri(actual_url, port="")
-
-    if actual_url.geturl() != parsed_url.geturl():
-        if scope in (None, "any"):
-            return actual_url.geturl()
-
-        logger.info(
-            "[WARN] Your URL ({}) redirects to {} which {} on same "
-            "first-level domain. Depending on your scopeType ({}), "
-            "your homepage might be out-of-scope. Please check!".format(
-                parsed_url.geturl(),
-                actual_url.geturl(),
-                (
-                    "is"
-                    if get_fld(parsed_url.geturl()) == get_fld(actual_url.geturl())
-                    else "is not"
-                ),
-                scope,
-            )
-        )
-
-        return actual_url.geturl()
+    if parsed_url.scheme == "https" and parsed_url.port == 443:  # noqa: PLR2004
+        parsed_url = rebuild_uri(parsed_url, port="")
+    if parsed_url.scheme == "http" and parsed_url.port == 80:  # noqa: PLR2004
+        parsed_url = rebuild_uri(parsed_url, port="")
 
     return parsed_url.geturl()
 

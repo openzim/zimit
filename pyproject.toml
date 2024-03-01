@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "zimit"
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.12,<3.13"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
 dependencies = [
@@ -94,10 +94,10 @@ all = "inv checkall --args '{args}'"
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py312']
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 88
 src = ["src"]
 
@@ -220,5 +220,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 typeCheckingMode="basic"

@@ -1,29 +1,22 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-openzim==0.2.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "zimit"
-authors = [
-  { name = "Kiwix", email = "dev@kiwix.org" },
-]
-keywords = ["some"]
 requires-python = ">=3.11,<3.12"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
-license = {text = "GPL-3.0-or-later"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-]
 dependencies = [
   "requests==2.31.0",
   "inotify==0.2.10",
   "tld==0.13",
   "warc2zim @ git+https://github.com/openzim/warc2zim@warc2zim2",
 ]
-dynamic = ["version"]
+dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
+
+[tool.hatch.metadata.hooks.openzim-metadata]
+kind = "scraper"
 
 [tool.hatch.metadata]
 allow-direct-references = true  # to be removed once we use a released warc2zim version
@@ -51,10 +44,6 @@ dev = [
   "zimit[test]",
   "zimit[check]",
 ]
-
-[project.urls]
-Homepage = "https://github.com/openzim/zimit"
-Donate = "https://www.kiwix.org/en/support-us/"
 
 [project.scripts]
 zimit = "zimit:zimit.zimit"

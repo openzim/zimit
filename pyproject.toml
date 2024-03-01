@@ -33,19 +33,19 @@ scripts = [
   "invoke==2.2.0",
 ]
 lint = [
-  "black==23.12.1",
-  "ruff==0.1.3",
+  "black==24.2.0",
+  "ruff==0.3.0",
 ]
 check = [
-  "pyright==1.1.347",
+  "pyright==1.1.352",
 ]
 test = [
-  "pytest==7.4.4",
-  "coverage==7.4.0",
+  "pytest==8.0.2",
+  "coverage==7.4.3",
 ]
 dev = [
-  "pre-commit==3.6.0",
-  "debugpy==1.8.0",
+  "pre-commit==3.6.2",
+  "debugpy==1.8.1",
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",
@@ -111,6 +111,8 @@ target-version = ['py311']
 target-version = "py311"
 line-length = 88
 src = ["src"]
+
+[tool.ruff.lint]
 select = [
   "A",  # flake8-builtins
   # "ANN",  # flake8-annotations
@@ -187,17 +189,17 @@ unfixable = [
   "F401",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["zimit"]
 
-[tool.ruff.flake8-bugbear]
+[tool.ruff.lint.flake8-bugbear]
 # add exceptions to B008 for fastapi.
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests**/**/*" = ["PLR2004", "S101", "TID252"]
 

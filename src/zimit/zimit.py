@@ -391,7 +391,7 @@ def run(raw_args):
         user_agent += f" {zimit_args.adminEmail}"
 
     if url:
-        url = clean_url(url)
+        url = get_cleaned_url(url)
         warc2zim_args.append("--url")
         warc2zim_args.append(url)
 
@@ -507,7 +507,7 @@ def run(raw_args):
     return warc2zim(warc2zim_args)
 
 
-def clean_url(url: str):
+def get_cleaned_url(url: str):
     parsed_url = urllib.parse.urlparse(url)
 
     # remove explicit port in URI for default-for-scheme as browsers does it

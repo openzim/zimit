@@ -1,29 +1,22 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-openzim==0.2.0"]
 build-backend = "hatchling.build"
 
 [project]
 name = "zimit"
-authors = [
-  { name = "Kiwix", email = "dev@kiwix.org" },
-]
-keywords = ["some"]
-requires-python = ">=3.11,<3.12"
+requires-python = ">=3.12,<3.13"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
-license = {text = "GPL-3.0-or-later"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-]
 dependencies = [
   "requests==2.31.0",
   "inotify==0.2.10",
   "tld==0.13",
   "warc2zim @ git+https://github.com/openzim/warc2zim@warc2zim2",
 ]
-dynamic = ["version"]
+dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
+
+[tool.hatch.metadata.hooks.openzim-metadata]
+kind = "scraper"
 
 [tool.hatch.metadata]
 allow-direct-references = true  # to be removed once we use a released warc2zim version
@@ -33,28 +26,24 @@ scripts = [
   "invoke==2.2.0",
 ]
 lint = [
-  "black==23.12.1",
-  "ruff==0.1.3",
+  "black==24.2.0",
+  "ruff==0.3.0",
 ]
 check = [
-  "pyright==1.1.347",
+  "pyright==1.1.352",
 ]
 test = [
-  "pytest==7.4.4",
-  "coverage==7.4.0",
+  "pytest==8.0.2",
+  "coverage==7.4.3",
 ]
 dev = [
-  "pre-commit==3.6.0",
-  "debugpy==1.8.0",
+  "pre-commit==3.6.2",
+  "debugpy==1.8.1",
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",
   "zimit[check]",
 ]
-
-[project.urls]
-Homepage = "https://github.com/openzim/zimit"
-Donate = "https://www.kiwix.org/en/support-us/"
 
 [project.scripts]
 zimit = "zimit:zimit.zimit"
@@ -105,12 +94,14 @@ all = "inv checkall --args '{args}'"
 
 [tool.black]
 line-length = 88
-target-version = ['py311']
+target-version = ['py312']
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 88
 src = ["src"]
+
+[tool.ruff.lint]
 select = [
   "A",  # flake8-builtins
   # "ANN",  # flake8-annotations
@@ -187,17 +178,17 @@ unfixable = [
   "F401",
 ]
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["zimit"]
 
-[tool.ruff.flake8-bugbear]
+[tool.ruff.lint.flake8-bugbear]
 # add exceptions to B008 for fastapi.
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 # Tests can use magic values, assertions, and relative imports
 "tests**/**/*" = ["PLR2004", "S101", "TID252"]
 
@@ -229,5 +220,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.11"
+pythonVersion = "3.12"
 typeCheckingMode="basic"

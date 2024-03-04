@@ -92,7 +92,7 @@ def fix_black(ctx: Context, args: str = "."):
 def fix_ruff(ctx: Context, args: str = "."):
     """fix all ruff rules"""
     args = args or "."  # needed for hatch script
-    ctx.run(f"ruff --fix {args}", pty=use_pty)
+    ctx.run(f"ruff check --fix {args}", pty=use_pty)
 
 
 @task(

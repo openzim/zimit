@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Using `warc2zim2` warc2zim ⚠️ change before releasing!
 - Build temporary `zimit2` Docker image for testing ⚠️ remove before releasing!
 - Adopt Python bootstrap conventions
+- Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim
+- Upgrade to Python 3.12 + upgrade dependencies
 
 ## [1.6.3] - 2024-01-18
 

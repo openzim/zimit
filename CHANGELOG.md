@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upgrade to Python 3.12 + upgrade dependencies
 - `--userAgent` CLI argument overrides again the `--userAgentSuffix` and `--adminEmail` values
 - `--userAgent` CLI arguement is not mandatory anymore
+- Upgraded Browsertrix Crawler to 1.0.3
 
 ### Fixed
 

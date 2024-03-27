@@ -370,7 +370,7 @@ def run(raw_args):
     except Exception:
         logger.error("Failed to get Browsertrix crawler version")
         raise
-    crawler_version = crawl.stdout
+    crawler_version = crawl.stdout.strip()
     logger.info(f"Browsertrix crawler: version {crawler_version}")
 
     # pass a scraper suffix to warc2zim so that both zimit, warc2zim and crawler

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `--version` flag to display Zimit version
 - New `--logging` flag to adjust Browsertrix Crawler logging (#273)
 - Use new `--scraper-suffix` flag of warc2zim to enhance ZIM "Scraper" metadata (#275)
+- New `--noMobileDevice` CLI argument
 
 ### Changed
 
@@ -21,6 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Adopt Python bootstrap conventions
 - Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim
 - Upgrade to Python 3.12 + upgrade dependencies
+- `--userAgent` CLI argument overrides again the `--userAgentSuffix` and `--adminEmail` values
+- `--userAgent` CLI arguement is not mandatory anymore
+
+### Fixed
+
+- Fix support for Youtube videos (#291)
 
 ## [1.6.3] - 2024-01-18
 

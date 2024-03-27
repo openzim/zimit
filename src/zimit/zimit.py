@@ -26,11 +26,6 @@ from zimscraperlib.uri import rebuild_uri
 
 from zimit.__about__ import __version__
 
-DEFAULT_USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 "
-    "(KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-)
-
 EXIT_CODE_WARC2ZIM_CHECK_FAILED = 2
 EXIT_CODE_CRAWLER_LIMIT_HIT = 11
 NORMAL_WARC2ZIM_EXIT_CODE = 100
@@ -230,13 +225,21 @@ def run(raw_args):
         help="Emulate mobile device by name from "
         "https://github.com/puppeteer/puppeteer/blob/"
         "main/packages/puppeteer-core/src/common/Device.ts",
+        default="Pixel 2",
+    )
+
+    parser.add_argument(
+        "--noMobileDevice",
+        help="Do not emulate a mobile device (use at your own risk, behavior is"
+        "uncertain)",
+        action="store_true",
+        default=False,
     )
 
     parser.add_argument(
         "--userAgent",
-        help="Override default user-agent with specified value ; --userAgentSuffix is "
-        "still applied",
-        default=DEFAULT_USER_AGENT,
+        help="Override default user-agent with specified value ; --userAgentSuffix and "
+        "--adminEmail have no effect when this is set",
     )
 
     parser.add_argument(
@@ -367,7 +370,7 @@ def run(raw_args):
     except Exception:
         logger.error("Failed to get Browsertrix crawler version")
         raise
-    crawler_version = crawl.stdout
+    crawler_version = crawl.stdout.strip()
     logger.info(f"Browsertrix crawler: version {crawler_version}")
 
     # pass a scraper suffix to warc2zim so that both zimit, warc2zim and crawler
@@ -384,11 +387,9 @@ def run(raw_args):
 
     url = zimit_args.url
 
-    user_agent = zimit_args.userAgent
-    if zimit_args.userAgentSuffix:
-        user_agent += f" {zimit_args.userAgentSuffix}"
+    user_agent_suffix = zimit_args.userAgentSuffix
     if zimit_args.adminEmail:
-        user_agent += f" {zimit_args.adminEmail}"
+        user_agent_suffix += f" {zimit_args.adminEmail}"
 
     if url:
         url = get_cleaned_url(url)
@@ -443,8 +444,12 @@ def run(raw_args):
         cmd_args.append("--url")
         cmd_args.append(url)
 
-    cmd_args.append("--userAgent")
-    cmd_args.append(user_agent)
+    cmd_args.append("--userAgentSuffix")
+    cmd_args.append(user_agent_suffix)
+
+    if not zimit_args.noMobileDevice:
+        cmd_args.append("--mobileDevice")
+        cmd_args.append(zimit_args.mobileDevice)
 
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
@@ -538,7 +543,7 @@ def get_node_cmd_line(args):
         "collection",
         "allowHashUrls",
         "lang",
-        "mobileDevice",
+        "userAgent",
         "useSitemap",
         "behaviors",
         "behaviorTimeout",

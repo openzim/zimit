@@ -32,14 +32,14 @@ COPY pyproject.toml README.md /src/
 COPY src/zimit/__about__.py /src/src/zimit/__about__.py
 
 # Install Python dependencies
-RUN /app/zimit/bin/python -m pip install --no-cache-dir /src
+RUN . /app/zimit/bin/activate && python -m pip install --no-cache-dir /src
 
 # Copy code + associated artifacts
 COPY src /src/src
 COPY *.md /src/
 
 # Install + cleanup
-RUN /app/zimit/bin/python -m pip install --no-cache-dir /src \
+RUN . /app/zimit/bin/activate && python -m pip install --no-cache-dir /src \
  && ln -s /app/zimit/bin/zimit /usr/bin/zimit \
  && chmod +x /usr/bin/zimit \
  && rm -rf /src

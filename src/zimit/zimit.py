@@ -359,6 +359,12 @@ def run(raw_args):
         help="Crawler logging configuration",
     )
 
+    parser.add_argument(
+        "--crawl-only",
+        help="Only crawl the website, do not convert WARCs to ZIM (debug option)",
+        action="store_true",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     logger.info("Checking browsertrix-crawler version")
@@ -415,13 +421,14 @@ def run(raw_args):
         warc2zim_args.append("--lang")
         warc2zim_args.append(zimit_args.zim_lang)
 
-    logger.info("----------")
-    logger.info("Testing warc2zim args")
-    logger.info("Running: warc2zim " + " ".join(warc2zim_args))
-    res = warc2zim(warc2zim_args)
-    if res != NORMAL_WARC2ZIM_EXIT_CODE:
-        logger.info("Exiting, invalid warc2zim params")
-        return EXIT_CODE_WARC2ZIM_CHECK_FAILED
+    if not zimit_args.crawl_only:
+        logger.info("----------")
+        logger.info("Testing warc2zim args")
+        logger.info("Running: warc2zim " + " ".join(warc2zim_args))
+        res = warc2zim(warc2zim_args)
+        if res != NORMAL_WARC2ZIM_EXIT_CODE:
+            logger.info("Exiting, invalid warc2zim params")
+            return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
     # make temp dir for this crawl
     if zimit_args.build:
@@ -483,6 +490,9 @@ def run(raw_args):
         logger.info("crawl interupted by a limit")
     elif crawl.returncode != 0:
         raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
+
+    if zimit_args.crawl_only:
+        return
 
     if zimit_args.collection:
         warc_directory = temp_root_dir.joinpath(

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `--logging` flag to adjust Browsertrix Crawler logging (#273)
 - Use new `--scraper-suffix` flag of warc2zim to enhance ZIM "Scraper" metadata (#275)
 - New `--noMobileDevice` CLI argument
+- New `--crawl-only` flag to only crawl the website, disabling the warc2zim conversion (#297)
 
 ### Changed
 

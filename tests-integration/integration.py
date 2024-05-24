@@ -1,14 +1,9 @@
-import os
 import glob
 import json
+import os
 
-import libzim.reader
 from warcio import ArchiveIterator
-
-
-def get_zim_article(zimfile, path):
-    zim_fh = libzim.reader.Archive(zimfile)
-    return zim_fh.get_entry_by_path(path).get_item().content.tobytes()
+from zimscraperlib.zim import Archive
 
 
 def test_is_file():
@@ -20,20 +15,34 @@ def test_zim_main_page():
     """Main page specified, http://isago.rskg.org/, was a redirect to https
     Ensure main page is the redirected page"""
 
-    assert b'"https://isago.rskg.org/"' in get_zim_article(
-        "/output/isago.zim", "A/index.html"
-    )
+    main_entry = Archive("/output/isago.zim").main_entry
+    assert main_entry.is_redirect
+    assert main_entry.get_redirect_entry().path == "isago.rskg.org/"
+
+
+def test_zim_scraper():
+    """Main page specified, http://isago.rskg.org/, was a redirect to https
+    Ensure main page is the redirected page"""
+
+    zim_fh = Archive("/output/isago.zim")
+    scraper = zim_fh.get_text_metadata("Scraper")
+    assert "zimit " in scraper
+    assert "warc2zim " in scraper
+    assert "Browsertrix crawler " in scraper
 
 
 def test_user_agent():
-    """Test that mobile user agent was used in WARC request records with custom Zimit and email suffix"""
+    """Test that mobile user agent was used
+
+    Check is done in WARC request records with custom Zimit and email suffix
+    """
 
     found = False
     for warc in glob.glob("/output/.tmp*/collections/crawl-*/archive/*.warc.gz"):
         with open(warc, "rb") as fh:
             for record in ArchiveIterator(fh):
                 if record.rec_type == "request":
-                    print(record.http_headers)
+                    print(record.http_headers)  # noqa: T201
                     ua = record.http_headers.get_header("User-Agent")
                     if ua:
                         assert "Mozilla" in ua
@@ -56,12 +65,12 @@ def test_stats_output():
         }
     with open("/output/warc2zim.json") as fh:
         assert json.loads(fh.read()) == {
-            "written": 8,
-            "total": 8,
+            "written": 7,
+            "total": 7,
         }
     with open("/output/stats.json") as fh:
         assert json.loads(fh.read()) == {
-            "done": 8,
-            "total": 8,
+            "done": 7,
+            "total": 7,
             "limit": {"max": 0, "hit": False},
         }

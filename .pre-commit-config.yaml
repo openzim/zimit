@@ -1,0 +1,27 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  -   id: trailing-whitespace
+  -   id: end-of-file-fixer
+- repo: https://github.com/psf/black
+  rev: "24.2.0"
+  hooks:
+  -   id: black
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.3.0
+  hooks:
+  - id: ruff
+- repo: https://github.com/RobertCraigie/pyright-python
+  rev: v1.1.352
+  hooks:
+  - id: pyright
+    name: pyright (system)
+    description: 'pyright static type checker'
+    entry: pyright
+    language: system
+    'types_or': [python, pyi]
+    require_serial: true
+    minimum_pre_commit_version: '2.9.2'

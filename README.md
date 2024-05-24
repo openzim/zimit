@@ -3,12 +3,9 @@ Zimit
 
 Zimit is a scraper allowing to create ZIM file from any Web site.
 
-[![Docker](https://ghcr-badge.deta.dev/openzim/zimit/latest_tag?label=docker)](https://ghcr.io/openzim/zimit)
-[![Build](https://github.com/openzim/zimit/workflows/CI/badge.svg?query=branch%3Amain)](https://github.com/openzim/zimit/actions?query=branch%3Amain)
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/zimit/badge)](https://www.codefactor.io/repository/github/openzim/zimit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-
-⚠️ **Important**: this tool uses [warc2zim](https://github.com/openzim/warc2zim) to create Zim files and thus require the Zim reader to support *Service Workers*. At the time of `zimit:1.0`, that's mostly kiwix-android and kiwix-serve. Note that service workers have protocol restrictions as well so you'll need to run it either from `localhost` or over HTTPS.
+[![Docker](https://ghcr-badge.deta.dev/openzim/zimit/latest_tag?label=docker)](https://ghcr.io/openzim/zimit)
 
 Technical background
 --------------------
@@ -45,7 +42,7 @@ The image accepts the following parameters, **as well as any of the [warc2zim](h
 - `--name` - Name of ZIM file (defaults to the hostname of the URL)
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
-- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded. 
+- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded.
 - `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
 - `--keep` - if set, keep the WARC files in a temp directory inside the output directory
 
@@ -68,7 +65,10 @@ default and prints the crawl status to the Docker log.
 Nota bene
 ---------
 
-A first version of a generic HTTP scraper was created in 2016 during
+While Zimit 1.x relied on a Service Worker to display the ZIM content, this is not anymore the case
+since Zimit 2.x which does not have any special requirements anymore.
+
+It should also be noted that a first version of a generic HTTP scraper was created in 2016 during
 the [Wikimania Esino Lario
 Hackathon](https://wikimania2016.wikimedia.org/wiki/Programme/Kiwix-dedicated_Hackathon).
 

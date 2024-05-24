@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- New `--version` flag to display Zimit version
+- New `--logging` flag to adjust Browsertrix Crawler logging (#273)
+- Use new `--scraper-suffix` flag of warc2zim to enhance ZIM "Scraper" metadata (#275)
+- New `--noMobileDevice` CLI argument
+
+### Changed
+
+- Use `warc2zim` version 2, which works without Service Worker anymore
+- Using `warc2zim2` warc2zim ⚠️ change before releasing!
+- Build temporary `zimit2` Docker image for testing ⚠️ remove before releasing!
+- Adopt Python bootstrap conventions
+- Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim
+- Upgrade to Python 3.12 + upgrade dependencies
+- `--userAgent` CLI argument overrides again the `--userAgentSuffix` and `--adminEmail` values
+- `--userAgent` CLI arguement is not mandatory anymore
+- Upgraded Browsertrix Crawler to 1.0.3
+
+### Fixed
+
+- Fix support for Youtube videos (#291)
 
 ## [1.6.3] - 2024-01-18
 
@@ -150,7 +172,7 @@ if `--keep` is set.
 ### Changed
 
 - using browsertrix-crawler `0.6.0` and warc2zim `1.4.2`
-- default WARC location after crawl changed 
+- default WARC location after crawl changed
 from `collections/capture-*/archive/` to `collections/crawl-*/archive/`
 
 ### Removed

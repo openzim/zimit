@@ -17,14 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use `warc2zim` version 2, which works without Service Worker anymore
-- Using `warc2zim2` warc2zim ⚠️ change before releasing!
-- Build temporary `zimit2` Docker image for testing ⚠️ remove before releasing!
+- Using `main` warc2zim ⚠️ change before releasing!
 - Adopt Python bootstrap conventions
 - Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim
 - Upgrade to Python 3.12 + upgrade dependencies
 - `--userAgent` CLI argument overrides again the `--userAgentSuffix` and `--adminEmail` values
 - `--userAgent` CLI arguement is not mandatory anymore
-- Upgraded Browsertrix Crawler to 1.0.3
+- Upgraded Browsertrix Crawler to 1.1.3
 
 ### Fixed
 

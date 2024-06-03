@@ -558,6 +558,16 @@ def get_node_cmd_line(args):
         "logging",
     ]:
         value = getattr(args, arg)
+        if arg == "userAgent":
+            # - strip leading whitespace which are not allowed on some websites
+            # - strip trailing whitespace which are either not allowed if no suffix is
+            # used, or duplicate with the automatically added one if a suffix is there
+            # - value is None when userAgent is not passed
+            if value:
+                value = value.strip()
+            if not value:
+                # ignore empty userAgent arg and keep crawler default value if empty
+                continue
         if value is None or (isinstance(value, bool) and value is False):
             continue
         node_cmd.append("--" + arg)

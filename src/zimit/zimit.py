@@ -5,7 +5,6 @@ and then calls the Node based driver
 """
 
 import atexit
-import itertools
 import json
 import logging
 import shutil
@@ -120,10 +119,6 @@ class ProgressFileWatcher:
 
 
 def run(raw_args):
-    wait_until_options = ["load", "domcontentloaded", "networkidle"]
-    wait_until_all = wait_until_options + [
-        f"{a},{b}" for a, b in itertools.combinations(wait_until_options, 2)
-    ]
     parser = ArgumentParser(
         description="Run a browser-based crawl on the specified URL and convert to ZIM"
     )
@@ -143,8 +138,8 @@ def run(raw_args):
     parser.add_argument(
         "--waitUntil",
         help="Puppeteer page.goto() condition to wait for before continuing. One of "
-        f"{wait_until_options} or a comma-separated combination of those.",
-        choices=wait_until_all,
+        "load, domcontentloaded, networkidle0 or networkidle2, or a "
+        "comma-separated combination of those.",
         default="load",
     )
 

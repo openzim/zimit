@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix support for Youtube videos (#291)
+- Fix crawler `--waitUntil` values (#289)
 
 ## [1.6.3] - 2024-01-18
 

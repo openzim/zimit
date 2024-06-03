@@ -5,25 +5,26 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
-## [Unreleased]
+## [2.0.0] - 2024-06-04
 
 ### Added
 
-- New `--version` flag to display Zimit version
+- New `--version` flag to display Zimit version (#234)
 - New `--logging` flag to adjust Browsertrix Crawler logging (#273)
 - Use new `--scraper-suffix` flag of warc2zim to enhance ZIM "Scraper" metadata (#275)
 - New `--noMobileDevice` CLI argument
+- Publish Docker image for `linux/arm64` (in addition to `linux/amd64`) (#178)
 
 ### Changed
 
-- Use `warc2zim` version 2, which works without Service Worker anymore
-- Using `main` warc2zim ⚠️ change before releasing!
+- **Use `warc2zim` version 2**, which works without Service Worker anymore (#193)
+- Upgraded Browsertrix Crawler to 1.1.3
 - Adopt Python bootstrap conventions
-- Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim
 - Upgrade to Python 3.12 + upgrade dependencies
+- Removed handling of redirects by zimit, they are handled by browsertrix crawler and detected properly by warc2zim (#284)
+- Drop initial check of URL in Python (#256)
 - `--userAgent` CLI argument overrides again the `--userAgentSuffix` and `--adminEmail` values
 - `--userAgent` CLI arguement is not mandatory anymore
-- Upgraded Browsertrix Crawler to 1.1.3
 
 ### Fixed
 

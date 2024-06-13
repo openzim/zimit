@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade dependencies (especially warc2zim 2.0.1 and browsertrix crawler 1.2.0-beta.0) (#318)
+
+### Fixed
+
+- Crawler is not correctly checking disk size / usage (#305)
+
 ## [2.0.0] - 2024-06-04
 
 ### Added

@@ -11,12 +11,15 @@ dependencies = [
   "requests==2.32.3",
   "inotify==0.2.10",
   "tld==0.13",
-  "warc2zim==2.0.1",
+  "warc2zim @ git+https://github.com/openzim/warc2zim@main",
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
 
 [tool.hatch.metadata.hooks.openzim-metadata]
 kind = "scraper"
+
+[tool.hatch.metadata]
+allow-direct-references = true  # to be removed once we use a released warc2zim version
 
 [project.optional-dependencies]
 scripts = [

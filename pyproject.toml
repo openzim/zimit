@@ -11,7 +11,7 @@ dependencies = [
   "requests==2.32.3",
   "inotify==0.2.10",
   "tld==0.13",
-  "warc2zim==2.0.2",
+  "warc2zim @ git+https://github.com/openzim/warc2zim@main",
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
 
@@ -27,7 +27,7 @@ scripts = [
 ]
 lint = [
   "black==24.4.2",
-  "ruff==0.4.8",
+  "ruff==0.4.9",
 ]
 check = [
   "pyright==1.1.367",

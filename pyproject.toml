@@ -11,7 +11,7 @@ dependencies = [
   "requests==2.32.3",
   "inotify==0.2.10",
   "tld==0.13",
-  "warc2zim @ git+https://github.com/openzim/warc2zim@main",
+  "warc2zim==2.0.2",
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
 

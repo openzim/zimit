@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded Browsertrix Crawler to 1.2.0 (fixes Youtube videos issue #323)
+
 ## [2.0.2] - 2024-06-18
 
 ### Changed

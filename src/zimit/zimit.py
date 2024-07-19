@@ -273,8 +273,8 @@ def run(raw_args):
 
     parser.add_argument(
         "--profile",
-        help="Path to tar.gz file which will be extracted "
-        "and used as the browser profile",
+        help="Path or HTTP(S) URL to tar.gz file which contains the browser profile "
+        "directory",
     )
 
     parser.add_argument(

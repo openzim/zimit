@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Make it clear that `--profile` argument can be an HTTP(S) URL (and not only a path) (#288)
 - Add `--custom-behaviors` argument to support path/HTTP(S) URL custom behaviors to pass to the crawler (#313)
 - Fix README imprecisions + add back warc2zim availability in docker image (#314)
+- Enhance integration test to assert final content of the ZIM (#287)
 
 ## [2.0.6] - 2024-08-02
 

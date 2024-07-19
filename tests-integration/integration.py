@@ -31,6 +31,24 @@ def test_zim_scraper():
     assert "Browsertrix crawler " in scraper
 
 
+def test_files_list():
+    """Check that expected files are present in the ZIM at proper path"""
+    zim_fh = Archive("/output/isago.zim")
+    for expected_entry in [
+        "_zim_static/__wb_module_decl.js",
+        "_zim_static/wombat.js",
+        "_zim_static/wombatSetup.js",
+        "isago.rskg.org/",
+        "isago.rskg.org/a-propos",
+        "isago.rskg.org/conseils",
+        "isago.rskg.org/faq",
+        "isago.rskg.org/static/favicon256.png",
+        "isago.rskg.org/static/tarifs-isago.pdf",
+        "maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
+    ]:
+        assert zim_fh.get_content(expected_entry)
+
+
 def test_user_agent():
     """Test that mobile user agent was used
 

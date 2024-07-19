@@ -41,6 +41,7 @@ COPY *.md /src/
 # Install + cleanup
 RUN . /app/zimit/bin/activate && python -m pip install --no-cache-dir /src \
  && ln -s /app/zimit/bin/zimit /usr/bin/zimit \
+ && ln -s /app/zimit/bin/warc2zim /usr/bin/warc2zim \
  && chmod +x /usr/bin/zimit \
  && rm -rf /src
 

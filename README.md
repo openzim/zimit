@@ -22,49 +22,42 @@ The system:
 
 The `zimit.py` is the entrypoint for the system.
 
-After the crawl is done, warc2zim is used to write a zim to the
-`/output` directory, which can be mounted as a volume.
+After the crawl is done, warc2zim is used to write a zim to the `/output` directory, which should be mounted as a volume to not loose the ZIM created when container stops.
 
-Using the `--keep` flag, the crawled WARCs will also be kept in a temp directory inside `/output`
+Using the `--keep` flag, the crawled WARCs and few other artifacts will also be kept in a temp directory inside `/output`
 
 Usage
 -----
 
-`zimit` is intended to be run in Docker.
-
-To build locally run:
-
-```bash
-docker build -t ghcr.io/openzim/zimit .
-```
+`zimit` is intended to be run in Docker. Docker image is published at https://github.com/orgs/openzim/packages/container/package/zimit.
 
 The image accepts the following parameters, **as well as any of the [warc2zim](https://github.com/openzim/warc2zim) ones**; useful for setting metadata, for instance:
 
-- `--url URL` - the url to be crawled (required)
-- `--workers N` - number of crawl workers to be run in parallel
-- `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
-- `--name` - Name of ZIM file (defaults to the hostname of the URL)
+- Required: `--url URL` - the url to be crawled
+- Required: `--name` - Name of ZIM file
 - `--output` - output directory (defaults to `/output`)
 - `--limit U` - Limit capture to at most U URLs
+- `--behaviors` - Control which browsertrix behaviors are ran (defaults to `autoplay,autofetch,siteSpecific`, adding `autoscroll` to the list is possible to automatically scroll the pages and fetch resources which are lazy loaded)
 - `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded.
-- `--scroll [N]` - if set, will activate a simple auto-scroll behavior on each page to scroll for upto N seconds
+- `--workers N` - number of crawl workers to be run in parallel
+- `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
 - `--keep` - if set, keep the WARC files in a temp directory inside the output directory
-
-The following is an example usage. The `--shm-size` flags is [needed to run Chrome in Docker](https://github.com/puppeteer/puppeteer/blob/v1.0.0/docs/troubleshooting.md#tips).
 
 Example command:
 
 ```bash
 docker run ghcr.io/openzim/zimit zimit --help
 docker run ghcr.io/openzim/zimit warc2zim --help
-docker run  -v /output:/output \
-       --shm-size=1gb ghcr.io/openzim/zimit zimit --url URL --name myzimfile --workers 2 --waitUntil domcontentloaded
+docker run  -v /output:/output ghcr.io/openzim/zimit zimit --url URL --name myzimfile
 ```
 
-The puppeteer-cluster provides monitoring output which is enabled by
-default and prints the crawl status to the Docker log.
-
 **Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" ghcr.io/openzim/zimit ...`).
+
+To re-build the Docker image locally run:
+
+```bash
+docker build -t ghcr.io/openzim/zimit .
+```
 
 FAQ
 ---

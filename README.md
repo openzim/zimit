@@ -66,6 +66,11 @@ default and prints the crawl status to the Docker log.
 
 **Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" ghcr.io/openzim/zimit ...`).
 
+FAQ
+---
+
+The Zimit contributor's team maintains [a page with most Frequently Asked Questions](https://github.com/openzim/zimit/wiki/Frequently-Asked-Questions).
+
 Nota bene
 ---------
 

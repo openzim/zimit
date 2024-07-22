@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add `--custom-behaviors` argument to support path/HTTP(S) URL custom behaviors to pass to the crawler (#313)
+- Add daily automated end-to-end tests of a page with Youtube player (#330)
 
 ### Changed
 

@@ -527,8 +527,6 @@ def run(raw_args):
     logger.info(f"Processing WARC files in {warc_directory}")
     warc2zim_args.append(str(warc_directory))
 
-    num_files = sum(1 for _ in warc_directory.iterdir())
-    logger.info(f"{num_files} WARC files found")
     logger.info(f"Calling warc2zim with these args: {warc2zim_args}")
 
     return warc2zim(warc2zim_args)

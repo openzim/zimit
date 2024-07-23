@@ -365,24 +365,10 @@ def run(raw_args):
 
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
-    logger.info("Checking browsertrix-crawler version")
-    crawl_version_cmd = ["crawl", "--version"]
-    try:
-        crawl = subprocess.run(
-            crawl_version_cmd, check=True, capture_output=True, text=True
-        )
-    except Exception:
-        logger.error("Failed to get Browsertrix crawler version")
-        raise
-    crawler_version = crawl.stdout.strip()
-    logger.info(f"Browsertrix crawler: version {crawler_version}")
-
-    # pass a scraper suffix to warc2zim so that both zimit, warc2zim and crawler
-    # versions are associated with the ZIM
+    # pass a scraper suffix to warc2zim so that both zimit and warc2zim versions are
+    # associated with the ZIM ; make it a CSV for easier parsing
     warc2zim_args.append("--scraper-suffix")
-    warc2zim_args.append(
-        f" + zimit {__version__} + Browsertrix crawler {crawler_version}"
-    )
+    warc2zim_args.append(f"zimit {__version__}")
 
     # pass url and output to warc2zim also
     if zimit_args.output:

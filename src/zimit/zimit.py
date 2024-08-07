@@ -7,6 +7,7 @@ and then calls the Node based driver
 import atexit
 import json
 import logging
+import re
 import shutil
 import signal
 import subprocess
@@ -19,6 +20,7 @@ from pathlib import Path
 
 import inotify
 import inotify.adapters
+import requests
 from warc2zim.main import main as warc2zim
 from zimscraperlib.logging import getLogger
 from zimscraperlib.uri import rebuild_uri
@@ -28,6 +30,7 @@ from zimit.__about__ import __version__
 EXIT_CODE_WARC2ZIM_CHECK_FAILED = 2
 EXIT_CODE_CRAWLER_LIMIT_HIT = 11
 NORMAL_WARC2ZIM_EXIT_CODE = 100
+REQUESTS_TIMEOUT = 10
 
 logger = getLogger(name="zimit", level=logging.INFO)
 
@@ -354,6 +357,12 @@ def run(raw_args):
         help="Crawler logging configuration",
     )
 
+    parser.add_argument(
+        "--custom-behaviors",
+        help="JS code for custom behaviors to customize crawler. Single string with "
+        "individual JS files URL/path separated by a comma",
+    )
+
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     logger.info("Checking browsertrix-crawler version")
@@ -433,6 +442,38 @@ def run(raw_args):
             shutil.rmtree(temp_root_dir)
 
         atexit.register(cleanup)
+
+    # copy / download custom behaviors to one single folder and configure crawler
+    if zimit_args.custom_behaviors:
+        behaviors_dir = temp_root_dir / "custom-behaviors"
+        behaviors_dir.mkdir()
+        for custom_behavior in [
+            custom_behavior.strip()
+            for custom_behavior in zimit_args.custom_behaviors.split(",")
+        ]:
+            behaviors_file = tempfile.NamedTemporaryFile(
+                dir=behaviors_dir,
+                prefix="behavior_",
+                suffix=".js",
+                delete_on_close=False,
+            )
+            if re.match(r"^https?\://", custom_behavior):
+                logger.info(
+                    f"Downloading browser profile from {custom_behavior} "
+                    f"to {behaviors_file.name}"
+                )
+                resp = requests.get(custom_behavior, timeout=REQUESTS_TIMEOUT)
+                resp.raise_for_status()
+                Path(behaviors_file.name).write_bytes(resp.content)
+            else:
+                logger.info(
+                    f"Copying browser profile from {custom_behavior} "
+                    f"to {behaviors_file.name}"
+                )
+                shutil.copy(custom_behavior, behaviors_file.name)
+        zimit_args.customBehaviors = str(behaviors_dir)
+    else:
+        zimit_args.customBehaviors = None
 
     cmd_args = get_node_cmd_line(zimit_args)
     if url:
@@ -551,6 +592,7 @@ def get_node_cmd_line(args):
         "overwrite",
         "config",
         "logging",
+        "customBehaviors",
     ]:
         value = getattr(args, arg)
         if arg == "userAgent":

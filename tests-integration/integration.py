@@ -28,7 +28,7 @@ def test_zim_scraper():
     scraper = zim_fh.get_text_metadata("Scraper")
     assert "zimit " in scraper
     assert "warc2zim " in scraper
-    assert "Browsertrix crawler " in scraper
+    assert "Browsertrix-Crawler " in scraper
 
 
 def test_files_list():

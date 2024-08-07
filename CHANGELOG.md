@@ -11,12 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add `--custom-behaviors` argument to support path/HTTP(S) URL custom behaviors to pass to the crawler (#313)
 - Add daily automated end-to-end tests of a page with Youtube player (#330)
+- Add `--warcs` option to directly process WARC files (#301)
 
 ### Changed
 
 - Make it clear that `--profile` argument can be an HTTP(S) URL (and not only a path) (#288)
 - Fix README imprecisions + add back warc2zim availability in docker image (#314)
 - Enhance integration test to assert final content of the ZIM (#287)
+- Stop fetching and passing browsertrix crawler version as scraperSuffix to warc2zim (#354)
+- Do not log number of WARC files found (#357)
 
 ## [2.0.6] - 2024-08-02
 

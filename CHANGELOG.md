@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Make it clear that `--profile` argument can be an HTTP(S) URL (and not only a path) (#288)
+
 ## [2.0.6] - 2024-08-02
 
 ### Changed

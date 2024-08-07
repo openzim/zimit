@@ -39,6 +39,7 @@ test = [
 dev = [
   "pre-commit==3.7.1",
   "debugpy==1.8.1",
+  "selenium==4.23.0", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",

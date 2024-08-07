@@ -1,0 +1,27 @@
+name: DailyTests
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+
+jobs:
+  run-daily-tests:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: build zimit image
+        run: docker build -t local-zimit .
+
+      - name: run crawl of test website
+        run: docker run -v $PWD/output3:/output local-zimit zimit --url https://website.test.openzim.org/ --name tests_eng_test-website --zim-file tests_eng_test-website.zim
+
+      - name: build selenium test image
+        run: docker build -t local-selenium tests-daily
+
+      - name: run integration test suite
+        run: docker run -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output3:/output local-selenium bash -c "cd /app && pytest -h && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"

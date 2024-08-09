@@ -11,7 +11,7 @@ dependencies = [
   "requests==2.32.3",
   "inotify==0.2.10",
   "tld==0.13",
-  "warc2zim @ git+https://github.com/openzim/warc2zim@main",
+  "warc2zim==2.1.0",
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
 
@@ -26,19 +26,19 @@ scripts = [
   "invoke==2.2.0",
 ]
 lint = [
-  "black==24.4.2",
-  "ruff==0.4.9",
+  "black==24.8.0",
+  "ruff==0.5.7",
 ]
 check = [
-  "pyright==1.1.367",
+  "pyright==1.1.375",
 ]
 test = [
-  "pytest==8.2.2",
-  "coverage==7.5.3",
+  "pytest==8.3.2",
+  "coverage==7.6.1",
 ]
 dev = [
-  "pre-commit==3.7.1",
-  "debugpy==1.8.1",
+  "pre-commit==3.8.0",
+  "debugpy==1.8.5",
   "selenium==4.23.0", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhance integration test to assert final content of the ZIM (#287)
 - Stop fetching and passing browsertrix crawler version as scraperSuffix to warc2zim (#354)
 - Do not log number of WARC files found (#357)
+- Upgrade dependencies (warc2zim 2.1.0)
 
 ### Fixed
 

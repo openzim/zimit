@@ -586,14 +586,18 @@ def run(raw_args):
             ]
 
         else:
-            warc_dirs = list(temp_root_dir.rglob("collections/crawl-*/archive/"))
+            warc_dirs = sorted(
+                temp_root_dir.rglob("collections/crawl-*/archive/"),
+                key=lambda path: path.lstat().st_mtime,
+            )
             if len(warc_dirs) == 0:
                 raise RuntimeError(
                     "Failed to find directory where WARC files have been created"
                 )
             elif len(warc_dirs) > 1:
                 logger.info(
-                    "Found many WARC files directories, only last one will be used"
+                    "Found many WARC files directories, only most recently modified one"
+                    " will be used"
                 )
                 for directory in warc_dirs:
                     logger.info(f"- {directory}")

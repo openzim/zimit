@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stop fetching and passing browsertrix crawler version as scraperSuffix to warc2zim (#354)
 - Do not log number of WARC files found (#357)
 
+### Fixed
+
+- Sort WARC directories found by modification time (#366)
+
 ## [2.0.6] - 2024-08-02
 
 ### Changed

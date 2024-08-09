@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for uncompressed tar archive in --warcs (#369)
+
 ## [2.1.0] - 2024-08-09
 
 ### Added

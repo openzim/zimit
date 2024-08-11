@@ -11,6 +11,13 @@ Zimit adheres to openZIM's [Contribution Guidelines](https://github.com/openzim/
 
 Zimit has implemented openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/docs/Policy.md) **v1.0.1**.
 
+Capabilities and known limitations
+--------------------
+
+While we would like to support as many websites as possible, making an offline archive of any website with a versatile tool obviously has some limitations.
+
+See for instance capabilities and known limitations of warc2zim in its [README](https://github.com/openzim/warc2zim/blob/main/README.md). There are also some limitations in Browsertrix Crawler (used to fetch the website) and wombat (used to properly replay dynamic web requests), but these are not (yet?) clearly documented.
+
 Technical background
 --------------------
 

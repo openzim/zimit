@@ -16,7 +16,7 @@ Capabilities and known limitations
 
 While we would like to support as many websites as possible, making an offline archive of any website with a versatile tool obviously has some limitations.
 
-See for instance capabilities and known limitations of warc2zim in its [README](https://github.com/openzim/warc2zim/blob/main/README.md). There are also some limitations in Browsertrix Crawler (used to fetch the website) and wombat (used to properly replay dynamic web requests), but these are not (yet?) clearly documented.
+Most capabilities and known limitations are documented in [warc2zim README](https://github.com/openzim/warc2zim/blob/main/README.md). There are also some limitations in Browsertrix Crawler (used to fetch the website) and wombat (used to properly replay dynamic web requests), but these are not (yet?) clearly documented.
 
 Technical background
 --------------------

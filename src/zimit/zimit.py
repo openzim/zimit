@@ -6,7 +6,6 @@ and then calls the Node based driver
 
 import atexit
 import json
-import logging
 import re
 import shutil
 import signal
@@ -21,19 +20,17 @@ from pathlib import Path
 
 import inotify
 import inotify.adapters
-import requests
 from warc2zim.main import main as warc2zim
-from zimscraperlib.logging import getLogger
 from zimscraperlib.uri import rebuild_uri
 
 from zimit.__about__ import __version__
-
-EXIT_CODE_WARC2ZIM_CHECK_FAILED = 2
-EXIT_CODE_CRAWLER_LIMIT_HIT = 11
-NORMAL_WARC2ZIM_EXIT_CODE = 100
-REQUESTS_TIMEOUT = 10
-
-logger = getLogger(name="zimit", level=logging.INFO)
+from zimit.constants import (
+    EXIT_CODE_CRAWLER_LIMIT_HIT,
+    EXIT_CODE_WARC2ZIM_CHECK_FAILED,
+    NORMAL_WARC2ZIM_EXIT_CODE,
+    logger,
+)
+from zimit.utils import download_file
 
 
 class ProgressFileWatcher:
@@ -457,9 +454,7 @@ def run(raw_args):
                     f"Downloading browser profile from {custom_behavior} "
                     f"to {behaviors_file.name}"
                 )
-                resp = requests.get(custom_behavior, timeout=REQUESTS_TIMEOUT)
-                resp.raise_for_status()
-                Path(behaviors_file.name).write_bytes(resp.content)
+                download_file(custom_behavior, Path(behaviors_file.name))
             else:
                 logger.info(
                     f"Copying browser profile from {custom_behavior} "
@@ -552,9 +547,7 @@ def run(raw_args):
             # collisions
             warc_file = Path(filename.name)
             logger.info(f"Downloading WARC(s) from {warc_location} to {warc_file}")
-            resp = requests.get(warc_location, timeout=REQUESTS_TIMEOUT)
-            resp.raise_for_status()
-            warc_file.write_bytes(resp.content)
+            download_file(warc_location, warc_file)
 
             # if it is a plain warc or warc.gz, simply add it to the list
             if suffix in {".warc", ".warc.gz"}:

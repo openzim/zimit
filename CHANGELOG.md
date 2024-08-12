@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add support for uncompressed tar archive in --warcs (#369)
 
+### Fixed
+
+- Stream files downloads to not exhaust memory (#373)
+
 ## [2.1.0] - 2024-08-09
 
 ### Added

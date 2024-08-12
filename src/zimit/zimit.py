@@ -368,7 +368,7 @@ def run(raw_args):
         "--warcs",
         help="Directly convert WARC archives to ZIM, by-passing the crawling phase. "
         "This argument must contain the path or HTTP(S) URL to either warc.gz files or"
-        "to a tar.gz containing the warc.gz files. Single value with individual "
+        "to a tar or tar.gz containing the warc.gz files. Single value with individual "
         "path/URLs separated by comma",
     )
 
@@ -517,7 +517,7 @@ def run(raw_args):
             warc_location.strip() for warc_location in zimit_args.warcs.split(",")
         ]:
             suffix = "".join(Path(urllib.parse.urlparse(warc_location).path).suffixes)
-            if suffix not in {".tar.gz", ".warc", ".warc.gz"}:
+            if suffix not in {".tar", ".tar.gz", ".warc", ".warc.gz"}:
                 raise Exception(f"Unsupported file at {warc_location}")
 
             filename = tempfile.NamedTemporaryFile(
@@ -542,7 +542,7 @@ def run(raw_args):
                 logger.info(
                     f"Extracting WARC(s) from {warc_location} to {extract_path}"
                 )
-                with tarfile.open(warc_location, "r:gz") as fh:
+                with tarfile.open(warc_location, "r") as fh:
                     # Extract all the contents to the specified directory
                     fh.extractall(path=extract_path, filter="data")
                 warc_files.append(Path(extract_path))
@@ -564,7 +564,7 @@ def run(raw_args):
             # otherwise extract tar.gz and delete it afterwards
             extract_path = temp_root_dir / f"{filename.name}_files"
             logger.info(f"Extracting WARC(s) from {warc_file} to {extract_path}")
-            with tarfile.open(warc_file, "r:gz") as fh:
+            with tarfile.open(warc_file, "r") as fh:
                 # Extract all the contents to the specified directory
                 fh.extractall(path=extract_path, filter="data")
             logger.info(f"Deleting archive at {warc_file}")

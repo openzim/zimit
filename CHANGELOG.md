@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Stream files downloads to not exhaust memory (#373)
+- Fix documentation on `--diskUtilization` setting (#375)
 
 ## [2.1.0] - 2024-08-09
 

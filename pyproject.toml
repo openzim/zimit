@@ -27,10 +27,10 @@ scripts = [
 ]
 lint = [
   "black==24.8.0",
-  "ruff==0.5.7",
+  "ruff==0.6.3",
 ]
 check = [
-  "pyright==1.1.375",
+  "pyright==1.1.379",
 ]
 test = [
   "pytest==8.3.2",
@@ -39,7 +39,7 @@ test = [
 dev = [
   "pre-commit==3.8.0",
   "debugpy==1.8.5",
-  "selenium==4.23.0", # used in daily tests, convenient for dev purpose (autocompletion)
+  "selenium==4.24.0", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",

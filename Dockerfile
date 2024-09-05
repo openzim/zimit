@@ -1,8 +1,5 @@
-FROM webrecorder/browsertrix-crawler:1.2.6
+FROM webrecorder/browsertrix-crawler:1.3.0-beta.0
 LABEL org.opencontainers.image.source https://github.com/openzim/zimit
-
-# add deadsnakes ppa for Python 3.12 on Ubuntu Jammy
-RUN add-apt-repository ppa:deadsnakes/ppa -y
 
 RUN apt-get update \
  && apt-get install -qqy --no-install-recommends \

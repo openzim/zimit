@@ -5,11 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
-## [Unreleased]
+## [2.1.2] - 2024-09-09
 
 ### Changed
 
-- Upgrade to browsertrix crawler 1.3.0-beta.1 (#387)
+- Upgrade to browsertrix crawler 1.3.0-beta.1 (#387) (fixes "Ziming a website with huge assets (e.g. PDFs) is failing to proceed" - #380)
 
 ## [2.1.1] - 2024-09-05
 

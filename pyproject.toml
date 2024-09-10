@@ -33,7 +33,7 @@ check = [
   "pyright==1.1.379",
 ]
 test = [
-  "pytest==8.3.2",
+  "pytest==8.3.3",
   "coverage==7.6.1",
 ]
 dev = [

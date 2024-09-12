@@ -30,10 +30,10 @@ lint = [
   "ruff==0.6.4",
 ]
 check = [
-  "pyright==1.1.379",
+  "pyright==1.1.380",
 ]
 test = [
-  "pytest==8.3.2",
+  "pytest==8.3.3",
   "coverage==7.6.1",
 ]
 dev = [

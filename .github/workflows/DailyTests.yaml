@@ -18,10 +18,17 @@ jobs:
         run: docker build -t local-zimit .
 
       - name: run crawl of test website
-        run: docker run -v $PWD/output3:/output local-zimit zimit --url https://website.test.openzim.org/ --name tests_eng_test-website --zim-file tests_eng_test-website.zim
+        run: docker run -v $PWD/output:/output local-zimit zimit --url https://website.test.openzim.org/ --name tests_eng_test-website --zim-file tests_eng_test-website.zim
+
+      - name: archive ZIM
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests_eng_test-website.zim
+          path: output/tests_eng_test-website.zim
+          retention-days: 30
 
       - name: build selenium test image
         run: docker build -t local-selenium tests-daily
 
       - name: run integration test suite
-        run: docker run -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output3:/output local-selenium bash -c "cd /app && pytest -h && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"
+        run: docker run -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-selenium bash -c "cd /app && pytest -h && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"

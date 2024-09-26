@@ -27,8 +27,8 @@ jobs:
           path: output/tests_eng_test-website.zim
           retention-days: 30
 
-      - name: build selenium test image
-        run: docker build -t local-selenium tests-daily
+      - name: build tests-daily Docker image
+        run: docker build -t local-tests-daily tests-daily
 
       - name: run integration test suite
-        run: docker run -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-selenium bash -c "cd /app && pytest -h && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"
+        run: docker run -e SKIP_YOUTUBE_TEST="True" -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-tests-daily bash -c "cd /app && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"

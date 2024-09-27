@@ -1,4 +1,5 @@
 import logging
+import os
 import subprocess
 from time import sleep
 
@@ -14,6 +15,8 @@ KIWIX_SERVE_START_SLEEP = 1
 
 ZIM_NAME = "tests_eng_test-website"
 YOUTUBE_VIDEO_PATH = "youtube.fuzzy.replayweb.page/embed/g5skcrNXdDM"
+
+SKIP_YOUTUBE_TEST = os.getenv("SKIP_YOUTUBE_TEST", "False").lower() == "true"
 
 CHECK_VIDEO_IS_PLAYING_AFTER_SECS = 30
 
@@ -79,6 +82,7 @@ def kiwix_serve():
     process.terminate()
 
 
+@pytest.mark.skipif(SKIP_YOUTUBE_TEST, reason="Youtube test disabled by environment")
 def test_youtube_video(chrome_driver, kiwix_serve):  # noqa: ARG001
     """Test that youtube video loads, and still plays after a while"""
 

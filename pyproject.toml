@@ -26,20 +26,20 @@ scripts = [
   "invoke==2.2.0",
 ]
 lint = [
-  "black==24.8.0",
-  "ruff==0.6.4",
+  "black==24.10.0",
+  "ruff==0.6.9",
 ]
 check = [
-  "pyright==1.1.380",
+  "pyright==1.1.383",
 ]
 test = [
   "pytest==8.3.3",
   "coverage==7.6.1",
 ]
 dev = [
-  "pre-commit==3.8.0",
-  "debugpy==1.8.5",
-  "selenium==4.24.0", # used in daily tests, convenient for dev purpose (autocompletion)
+  "pre-commit==4.0.0",
+  "debugpy==1.8.6",
+  "selenium==4.25.0", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",

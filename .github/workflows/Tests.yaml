@@ -59,6 +59,9 @@ jobs:
       - name: build image
         run: docker build -t zimit .
 
+      - name: ensure help display without issue
+        run: docker run -v $PWD/output:/output zimit zimit --help
+
       - name: run crawl
         run: docker run -v $PWD/output:/output zimit zimit --url http://isago.rskg.org/ --name isago --zim-file isago.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats.json --keep
 

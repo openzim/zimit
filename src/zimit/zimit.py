@@ -287,7 +287,7 @@ def run(raw_args):
     parser.add_argument(
         "--diskUtilization",
         help="Save state and exit if disk utilization exceeds this percentage value."
-        " Default (if not set) is 90%. Set to 0 to disable disk utilization check.",
+        " Default (if not set) is 90%%. Set to 0 to disable disk utilization check.",
         type=int,
         default=90,
     )

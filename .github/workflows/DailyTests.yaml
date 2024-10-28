@@ -8,7 +8,7 @@ on:
 
 jobs:
   run-daily-tests:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
 
     steps:
       - name: checkout
@@ -31,4 +31,4 @@ jobs:
         run: docker build -t local-tests-daily tests-daily
 
       - name: run integration test suite
-        run: docker run -e SKIP_YOUTUBE_TEST="True" -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-tests-daily bash -c "cd /app && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"
+        run: docker run -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-tests-daily bash -c "cd /app && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"

@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upgrade to browsertrix crawler 1.3.4 (#424)
+- Upgrade to browsertrix crawler 1.3.4 and warc2zim 2.1.3 (#424)
 
 ## [2.1.4] - 2024-10-11
 

@@ -685,7 +685,7 @@ def sigint_handler(*args):  # noqa: ARG001
 
 
 def zimit():
-    run(sys.argv[1:])
+    sys.exit(run(sys.argv[1:]))
 
 
 signal.signal(signal.SIGINT, sigint_handler)

@@ -33,6 +33,8 @@ After the crawl is done, warc2zim is used to write a zim to the `/output` direct
 
 Using the `--keep` flag, the crawled WARCs and few other artifacts will also be kept in a temp directory inside `/output`
 
+By default `text/*` is [compressed](https://github.com/openzim/libzim/issues/948#issuecomment-2620927505) by [zstd](https://en.wikipedia.org/wiki/Zstd).
+
 Usage
 -----
 

@@ -1,10 +1,10 @@
 [build-system]
-requires = ["hatchling", "hatch-openzim==0.2.0"]
+requires = ["hatchling", "hatch-openzim"]
 build-backend = "hatchling.build"
 
 [project]
 name = "zimit"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.13,<3.14"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
 dependencies = [
@@ -26,20 +26,20 @@ scripts = [
   "invoke==2.2.0",
 ]
 lint = [
-  "black==24.10.0",
-  "ruff==0.6.9",
+  "black==25.1.0",
+  "ruff==0.9.4",
 ]
 check = [
-  "pyright==1.1.383",
+  "pyright==1.1.393",
 ]
 test = [
-  "pytest==8.3.3",
-  "coverage==7.6.1",
+  "pytest==8.3.4",
+  "coverage==7.6.10",
 ]
 dev = [
-  "pre-commit==4.0.0",
-  "debugpy==1.8.6",
-  "selenium==4.25.0", # used in daily tests, convenient for dev purpose (autocompletion)
+  "pre-commit==4.1.0",
+  "debugpy==1.8.12",
+  "selenium==4.28.1", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",
@@ -95,10 +95,10 @@ all = "inv checkall --args '{args}'"
 
 [tool.black]
 line-length = 88
-target-version = ['py312']
+target-version = ['py313']
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py313"
 line-length = 88
 src = ["src"]
 
@@ -221,5 +221,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.12"
+pythonVersion = "3.13"
 typeCheckingMode="basic"

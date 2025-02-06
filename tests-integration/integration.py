@@ -87,11 +87,12 @@ def test_user_agent():
 
 def test_stats_output():
     assert json.loads(Path("/output/crawl.json").read_bytes()) == {
-        "crawled": 35,
+        "crawled": 17,
         "pending": 0,
         "pendingPages": [],
-        "total": 35,
-        "failed": 18,
+        "total": 17,
+        "failed": 1,
+        "failedWillRetry": 17,
         "limit": {"max": 0, "hit": False},
     }
 

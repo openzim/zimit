@@ -26,4 +26,3 @@ jobs:
           repo_overview: auto
           platforms: |
             linux/amd64
-            linux/arm64

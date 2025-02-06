@@ -17,7 +17,7 @@ def test_zim_main_page():
     was a redirect to https
     Ensure main page is the redirected page"""
 
-    main_entry = Archive("/output/tests_en_onepage.zim").main_entry
+    main_entry = Archive(Path("/output/tests_en_onepage.zim")).main_entry
     assert main_entry.is_redirect
     assert (
         main_entry.get_redirect_entry().path
@@ -28,7 +28,7 @@ def test_zim_main_page():
 def test_zim_scraper():
     """Check content of scraper metadata"""
 
-    zim_fh = Archive("/output/tests_en_onepage.zim")
+    zim_fh = Archive(Path("/output/tests_en_onepage.zim"))
     scraper = zim_fh.get_text_metadata("Scraper")
     assert "zimit " in scraper
     assert "warc2zim " in scraper
@@ -37,7 +37,7 @@ def test_zim_scraper():
 
 def test_files_list():
     """Check that expected files are present in the ZIM at proper path"""
-    zim_fh = Archive("/output/tests_en_onepage.zim")
+    zim_fh = Archive(Path("/output/tests_en_onepage.zim"))
     for expected_entry in [
         "_zim_static/__wb_module_decl.js",
         "_zim_static/wombat.js",
@@ -87,11 +87,12 @@ def test_user_agent():
 
 def test_stats_output():
     assert json.loads(Path("/output/crawl.json").read_bytes()) == {
-        "crawled": 35,
+        "crawled": 17,
         "pending": 0,
         "pendingPages": [],
-        "total": 35,
-        "failed": 18,
+        "total": 17,
+        "failed": 1,
+        "failedWillRetry": 17,
         "limit": {"max": 0, "hit": False},
     }
 

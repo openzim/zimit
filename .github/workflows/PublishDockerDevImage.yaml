@@ -31,7 +31,7 @@ jobs:
             linux/amd64
 
   publish-arm64:
-    runs-on: ubuntu-24.04-arm64
+    runs-on: ubuntu-24.04-arm
     name: "Publish for ARM64"
 
     steps:

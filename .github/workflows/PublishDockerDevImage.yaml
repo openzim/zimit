@@ -7,8 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
-    runs-on: ubuntu-22.04
+  publish-amd64:
+    runs-on: ubuntu-24.04
+    name: "Publish for AMD64"
 
     steps:
       - uses: actions/checkout@v4
@@ -28,3 +29,26 @@ jobs:
           repo_overview: auto
           platforms: |
             linux/amd64
+
+  publish-arm64:
+    runs-on: ubuntu-24.04-arm64
+    name: "Publish for ARM64"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and push Docker image
+        uses: openzim/docker-publish-action@v10
+        with:
+          image-name: openzim/zimit
+          manual-tag: dev
+          latest-on-tag: false
+          restrict-to: openzim/zimit
+          registries: ghcr.io
+          credentials:
+            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
+            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
+          repo_description: auto
+          repo_overview: auto
+          platforms: |
+            linux/arm64

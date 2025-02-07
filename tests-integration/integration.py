@@ -90,7 +90,7 @@ def test_stats_output():
         "crawled": 17,
         "pending": 0,
         "pendingPages": [],
-        "total": 17,
+        "total": 35,
         "failed": 18,
         "limit": {"max": 0, "hit": False},
     }

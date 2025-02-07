@@ -91,8 +91,7 @@ def test_stats_output():
         "pending": 0,
         "pendingPages": [],
         "total": 17,
-        "failed": 1,
-        "failedWillRetry": 17,
+        "failed": 18,
         "limit": {"max": 0, "hit": False},
     }
 

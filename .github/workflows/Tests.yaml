@@ -57,13 +57,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: build image
-        run: docker build -t zimit .
+        run: docker build -t local-zimit .
 
       - name: ensure help display without issue
-        run: docker run -v $PWD/output:/output zimit zimit --help
+        run: docker run -v $PWD/output:/output local-zimit zimit --help
 
-      - name: run crawl
-        run: docker run -v $PWD/output:/output zimit zimit --url http://website.test.openzim.org/http-return-codes.html --name tests_en_onepage --zim-file tests_en_onepage.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats.json --keep
+      - name: run crawl with soft size limit
+        run: docker run -v $PWD/output:/output local-zimit zimit --url http://website.test.openzim.org/ --sizeSoftLimit 8192 --name tests_en_sizesoftlimit --zim-file tests_en_sizesoftlimit.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats_sizesoftlimit.json
+
+      - name: run crawl with hard size limit
+        run: docker run -v $PWD/output:/output local-zimit zimit --url http://website.test.openzim.org/ --sizeHardLimit 8192 --name tests_en_sizehardlimit --zim-file tests_en_sizehardlimit.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats_sizehardlimit.json || true
+
+      - name: run crawl with soft time limit
+        run: docker run -v $PWD/output:/output local-zimit zimit --url http://website.test.openzim.org/ --timeSoftLimit 1 --name tests_en_timesoftlimit --zim-file tests_en_timesoftlimit.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats_timesoftlimit.json
+
+      - name: run crawl with hard time limit
+        run: docker run -v $PWD/output:/output local-zimit zimit --url http://website.test.openzim.org/ --timeHardLimit 1 --name tests_en_timehardlimit --zim-file tests_en_timehardlimit.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats_timehardlimit.json || true
+
+      - name: run standard crawl
+        run: docker run -v $PWD/output:/output local-zimit zimit --url http://website.test.openzim.org/http-return-codes.html --name tests_en_onepage --zim-file tests_en_onepage.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --statsFilename /output/stats.json --keep
 
       - name: run integration test suite
-        run: docker run -v $PWD/tests-integration/integration.py:/app/integration.py -v $PWD/output:/output zimit bash -c "/app/zimit/bin/pip install pytest; /app/zimit/bin/pytest -v /app/integration.py"
+        run: docker run -v $PWD/tests-integration/integration.py:/app/integration.py -v $PWD/output:/output local-zimit bash -c "/app/zimit/bin/pip install pytest; /app/zimit/bin/pytest -v /app/integration.py"

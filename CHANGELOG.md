@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keep temporary folder when crawler or warc2zim fails, even if not asked for (#468)
 - Add many missing Browsertrix Crawler arguments ; drop default overrides by zimit ; drop `--noMobileDevice` setting (not needed anymore) (#433)
 - Document all Browsertrix Crawler default arguments values (#416)
-- Use preferred Browsertrix Crawler arguments names:
+- Use preferred Browsertrix Crawler arguments names: (part of #471)
   - `--seeds` instead of `--url`
   - `--seedFile` instead of `--urlFile`
   - `--pageLimit` instead of `--limit`
@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--scopeIncludeRx` instead of `--include`
   - `--scopeExcludeRx` instead of `--exclude`
   - `--pageExtraDelay` instead of `--delay`
+- Remove confusion between zimit, warc2zim and crawler stats filenames (part of #471)
+  - `--statsFilename` is now the crawler stats file (since it is the same name, just like other arguments)
+  - `--zimit-progress-file` is now the zimit stats location
+  - `--warc2zim-progress-file` is the warc2zim stats location
+  - all are optional values, if not set and needed temporary files are used
 
 ### Fixed
 

@@ -37,17 +37,16 @@ temp_root_dir: Path | None = None
 
 
 class ProgressFileWatcher:
-    def __init__(self, output_dir: Path, stats_path: Path):
-        self.crawl_path = output_dir / "crawl.json"
-        self.warc2zim_path = output_dir / "warc2zim.json"
-        self.stats_path = stats_path
-
-        if not self.stats_path.is_absolute():
-            self.stats_path = output_dir / self.stats_path
+    def __init__(
+        self, crawl_stats_path: Path, warc2zim_stats_path, zimit_stats_path: Path
+    ):
+        self.crawl_stats_path = crawl_stats_path
+        self.warc2zim_stats_path = warc2zim_stats_path
+        self.zimit_stats_path = zimit_stats_path
 
         # touch them all so inotify is not unhappy on add_watch
-        self.crawl_path.touch()
-        self.warc2zim_path.touch()
+        self.crawl_stats_path.touch()
+        self.warc2zim_stats_path.touch()
         self.process = None
 
     def stop(self):
@@ -59,12 +58,16 @@ class ProgressFileWatcher:
     def watch(self):
         self.process = Process(
             target=self.inotify_watcher,
-            args=(str(self.crawl_path), str(self.warc2zim_path), str(self.stats_path)),
+            args=(
+                str(self.crawl_stats_path),
+                str(self.warc2zim_stats_path),
+                str(self.zimit_stats_path),
+            ),
         )
         self.process.daemon = True
         self.process.start()
 
-    def inotify_watcher(self, crawl_fpath: str, warc2zim_fpath: str, output_fpath: str):
+    def inotify_watcher(self, crawl_fpath: str, warc2zim_fpath: str, zimit_fpath: str):
         ino = inotify.adapters.Inotify()
         ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
         ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
@@ -101,7 +104,7 @@ class ProgressFileWatcher:
                     continue
                 if not out:
                     continue
-                with open(output_fpath, "w") as ofh:
+                with open(zimit_fpath, "w") as ofh:
                     json.dump(out, ofh)
 
 
@@ -427,8 +430,22 @@ def run(raw_args):
 
     parser.add_argument(
         "--statsFilename",
-        help="If set, output stats as JSON to this file. (Relative filename resolves "
-        "to crawl working directory)",
+        help="If set, output crawl stats as JSON to this file. Relative filename "
+        "resolves to output directory, see --output.",
+    )
+
+    parser.add_argument(
+        "--zimit-progress-file",
+        help="If set, output zimit stats as JSON to this file. Forces the creation of"
+        "crawler and warc2zim stats as well. If --statsFilename and/or "
+        "--warc2zim-progress-file are not set, default temporary files will be used. "
+        "Relative filename resolves to output directory, see --output.",
+    )
+
+    parser.add_argument(
+        "--warc2zim-progress-file",
+        help="If set, output warc2zim stats as JSON to this file. Relative filename "
+        "resolves to output directory, see --output.",
     )
 
     parser.add_argument(
@@ -701,7 +718,11 @@ def run(raw_args):
         action="store_true",
     )
 
-    parser.add_argument("--output", help="Output directory for ZIM", default="/output")
+    parser.add_argument(
+        "--output",
+        help="Output directory for ZIM. Default to /output.",
+        default="/output",
+    )
 
     parser.add_argument(
         "--build",
@@ -874,20 +895,67 @@ def run(raw_args):
     cmd_args.append("--cwd")
     cmd_args.append(str(temp_root_dir))
 
-    # setup inotify crawler progress watcher
-    if zimit_args.statsFilename:
+    output_dir = Path(zimit_args.output)
+    warc2zim_stats_file = (
+        Path(zimit_args.warc2zim_progress_file)
+        if zimit_args.warc2zim_progress_file
+        else temp_root_dir / "warc2zim.json"
+    )
+    if not warc2zim_stats_file.is_absolute():
+        warc2zim_stats_file = output_dir / warc2zim_stats_file
+        warc2zim_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    warc2zim_stats_file.unlink(missing_ok=True)
+
+    crawler_stats_file = (
+        Path(zimit_args.statsFilename)
+        if zimit_args.statsFilename
+        else temp_root_dir / "crawl.json"
+    )
+    if not crawler_stats_file.is_absolute():
+        crawler_stats_file = output_dir / crawler_stats_file
+        crawler_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    crawler_stats_file.unlink(missing_ok=True)
+
+    zimit_stats_file = (
+        Path(zimit_args.zimit_progress_file)
+        if zimit_args.zimit_progress_file
+        else temp_root_dir / "stats.json"
+    )
+    if not zimit_stats_file.is_absolute():
+        zimit_stats_file = output_dir / zimit_stats_file
+        zimit_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    zimit_stats_file.unlink(missing_ok=True)
+
+    if zimit_args.zimit_progress_file:
+        # setup inotify crawler progress watcher
         watcher = ProgressFileWatcher(
-            Path(zimit_args.output), Path(zimit_args.statsFilename)
+            zimit_stats_path=zimit_stats_file,
+            crawl_stats_path=crawler_stats_file,
+            warc2zim_stats_path=warc2zim_stats_file,
         )
-        logger.info(f"Writing progress to {watcher.stats_path}")
+        logger.info(
+            f"Writing zimit progress to {watcher.zimit_stats_path}, crawler progress to"
+            f" {watcher.crawl_stats_path} and warc2zim progress to "
+            f"{watcher.warc2zim_stats_path}"
+        )
         # update crawler command
         cmd_args.append("--statsFilename")
-        cmd_args.append(str(watcher.crawl_path))
+        cmd_args.append(str(crawler_stats_file))
         # update warc2zim command
         warc2zim_args.append("-v")
         warc2zim_args.append("--progress-file")
-        warc2zim_args.append(str(watcher.warc2zim_path))
+        warc2zim_args.append(str(warc2zim_stats_file))
         watcher.watch()
+    else:
+        if zimit_args.statsFilename:
+            logger.info(f"Writing crawler progress to {crawler_stats_file}")
+            cmd_args.append("--statsFilename")
+            cmd_args.append(str(crawler_stats_file))
+        if zimit_args.warc2zim_progress_file:
+            logger.info(f"Writing warc2zim progress to {warc2zim_stats_file}")
+            warc2zim_args.append("-v")
+            warc2zim_args.append("--progress-file")
+            warc2zim_args.append(str(warc2zim_stats_file))
 
     cmd_line = " ".join(cmd_args)
 
@@ -971,7 +1039,7 @@ def run(raw_args):
             logger.info(
                 "Crawl size soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.statsFilename:
+            if zimit_args.zimit_progress_file:
                 partial_zim = True
         elif (
             crawl.returncode == EXIT_CODE_CRAWLER_TIME_LIMIT_HIT
@@ -980,7 +1048,7 @@ def run(raw_args):
             logger.info(
                 "Crawl time soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.statsFilename:
+            if zimit_args.zimit_progress_file:
                 partial_zim = True
         elif crawl.returncode != 0:
             logger.error(
@@ -1024,11 +1092,10 @@ def run(raw_args):
 
     warc2zim_exit_code = warc2zim(warc2zim_args)
 
-    if zimit_args.statsFilename:
-        stats = Path(zimit_args.statsFilename)
-        stats_content = json.loads(stats.read_bytes())
+    if zimit_args.zimit_progress_file:
+        stats_content = json.loads(zimit_stats_file.read_bytes())
         stats_content["partialZim"] = partial_zim
-        stats.write_text(json.dumps(stats_content))
+        zimit_stats_file.write_text(json.dumps(stats_content))
 
     # also call cancel_cleanup when --keep, even if it is not supposed to be registered,
     # so that we will display temporary files location just like in other situations

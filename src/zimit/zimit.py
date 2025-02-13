@@ -25,7 +25,8 @@ from zimscraperlib.uri import rebuild_uri
 
 from zimit.__about__ import __version__
 from zimit.constants import (
-    EXIT_CODE_CRAWLER_LIMIT_HIT,
+    EXIT_CODE_CRAWLER_SIZE_LIMIT_HIT,
+    EXIT_CODE_CRAWLER_TIME_LIMIT_HIT,
     EXIT_CODE_WARC2ZIM_CHECK_FAILED,
     NORMAL_WARC2ZIM_EXIT_CODE,
     logger,
@@ -61,35 +62,19 @@ class ProgressFileWatcher:
         self.process.daemon = True
         self.process.start()
 
-    @staticmethod
-    def inotify_watcher(crawl_fpath: str, warc2zim_fpath: str, output_fpath: str):
+    def inotify_watcher(self, crawl_fpath: str, warc2zim_fpath: str, output_fpath: str):
         ino = inotify.adapters.Inotify()
         ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
         ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
 
-        class Limit:
-            def __init__(self):
-                self.max = self.hit = None
-
-            @property
-            def as_dict(self):
-                return {"max": self.max, "hit": self.hit}
-
-        # limit is only reported by crawl but needs to be reported up
-        limit = Limit()
-
-        def crawl_conv(data, limit):
+        def crawl_conv(data):
             # we consider crawl to be 90% of the workload so total = craw_total * 90%
-            # limit = {"max": data["limit"]["max"], "hit": data["limit"]["hit"]}
-            limit.max = data["limit"]["max"]
-            limit.hit = data["limit"]["hit"]
             return {
                 "done": data["crawled"],
                 "total": int(data["total"] / 0.9),
-                "limit": limit.as_dict,
             }
 
-        def warc2zim_conv(data, limit):
+        def warc2zim_conv(data):
             # we consider warc2zim to be 10% of the workload so
             # warc2zim_total = 10% and  total = 90 + warc2zim_total * 10%
             return {
@@ -98,7 +83,6 @@ class ProgressFileWatcher:
                     * (0.9 + (float(data["written"]) / data["total"]) / 10)
                 ),
                 "total": data["total"],
-                "limit": limit.as_dict,
             }
 
         for _, _, fpath, _ in ino.event_gen(yield_nones=False):  # pyright: ignore
@@ -108,7 +92,7 @@ class ProgressFileWatcher:
             # open input and output separatly as to not clear output on error
             with open(fpath) as ifh:
                 try:
-                    out = func(json.load(ifh), limit)
+                    out = func(json.load(ifh))
                 except Exception:  # nosec # noqa: S112
                     # simply ignore progress update should an error arise
                     # might be malformed input for instance
@@ -278,9 +262,17 @@ def run(raw_args):
         "directory",
     )
 
-    parser.add_argument(
-        "--sizeLimit",
-        help="If set, save state and exit if size limit exceeds this value",
+    size_group = parser.add_mutually_exclusive_group()
+    size_group.add_argument(
+        "--sizeSoftLimit",
+        help="If set, save crawl state and stop crawl if WARC size exceeds this value. "
+        "ZIM will still be created.",
+        type=int,
+    )
+    size_group.add_argument(
+        "--sizeHardLimit",
+        help="If set, exit crawler and fail the scraper immediately if WARC size "
+        "exceeds this value",
         type=int,
     )
 
@@ -292,9 +284,17 @@ def run(raw_args):
         default=90,
     )
 
-    parser.add_argument(
-        "--timeLimit",
-        help="If set, save state and exit after time limit, in seconds",
+    time_group = parser.add_mutually_exclusive_group()
+    time_group.add_argument(
+        "--timeSoftLimit",
+        help="If set, save crawl state and stop crawl if WARC WARC(s) creation takes "
+        "longer than this value, in seconds. ZIM will still be created.",
+        type=int,
+    )
+    time_group.add_argument(
+        "--timeHardLimit",
+        help="If set, exit crawler and fail the scraper immediately if WARC(s) creation"
+        " takes longer than this value, in seconds",
         type=int,
     )
 
@@ -367,6 +367,13 @@ def run(raw_args):
         "This argument must contain the path or HTTP(S) URL to either warc.gz files or"
         "to a tar or tar.gz containing the warc.gz files. Single value with individual "
         "path/URLs separated by comma",
+    )
+
+    parser.add_argument(
+        "--acceptable-crawler-exit-codes",
+        help="Non-zero crawler exit codes to consider as acceptable to continue with "
+        " conversion of WARC to ZIM. Flag partialZim will be set in statsFilename (if "
+        " used). Single value with individual error codes separated by comma",
     )
 
     zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
@@ -504,6 +511,8 @@ def run(raw_args):
         f"{'will keep' if zimit_args.keep else 'will delete'}"
     )
 
+    partial_zim = False
+
     # if warc files are passed, do not run browsertrix crawler but fetch the files if
     # they are provided as an HTTP URL + extract the archive if it is a tar.gz
     warc_files: list[Path] = []
@@ -568,10 +577,29 @@ def run(raw_args):
 
         logger.info(f"Running browsertrix-crawler crawl: {cmd_line}")
         crawl = subprocess.run(cmd_args, check=False)
-        if crawl.returncode == EXIT_CODE_CRAWLER_LIMIT_HIT:
-            logger.info("crawl interupted by a limit")
+        if (
+            crawl.returncode == EXIT_CODE_CRAWLER_SIZE_LIMIT_HIT
+            and zimit_args.sizeSoftLimit
+        ):
+            logger.info(
+                "Crawl size soft limit hit. Continuing with warc2zim conversion."
+            )
+            if zimit_args.statsFilename:
+                partial_zim = True
+        elif (
+            crawl.returncode == EXIT_CODE_CRAWLER_TIME_LIMIT_HIT
+            and zimit_args.timeSoftLimit
+        ):
+            logger.info(
+                "Crawl time soft limit hit. Continuing with warc2zim conversion."
+            )
+            if zimit_args.statsFilename:
+                partial_zim = True
         elif crawl.returncode != 0:
-            raise subprocess.CalledProcessError(crawl.returncode, cmd_args)
+            logger.error(
+                f"Crawl returned an error: {crawl.returncode}, scraper exiting"
+            )
+            return crawl.returncode
 
         if zimit_args.collection:
             warc_files = [
@@ -606,7 +634,15 @@ def run(raw_args):
 
     logger.info(f"Calling warc2zim with these args: {warc2zim_args}")
 
-    return warc2zim(warc2zim_args)
+    warc2zim_exit_code = warc2zim(warc2zim_args)
+
+    if zimit_args.statsFilename:
+        stats = Path(zimit_args.statsFilename)
+        stats_content = json.loads(stats.read_bytes())
+        stats_content["partialZim"] = partial_zim
+        stats.write_text(json.dumps(stats_content))
+
+    return warc2zim_exit_code
 
 
 def get_cleaned_url(url: str):
@@ -646,9 +682,11 @@ def get_node_cmd_line(args):
         "behaviorTimeout",
         "delay",
         "profile",
-        "sizeLimit",
+        "sizeSoftLimit",
+        "sizeHardLimit",
         "diskUtilization",
-        "timeLimit",
+        "timeSoftLimit",
+        "timeHardLimit",
         "healthCheckPort",
         "overwrite",
         "config",
@@ -668,7 +706,14 @@ def get_node_cmd_line(args):
                 continue
         if value is None or (isinstance(value, bool) and value is False):
             continue
-        node_cmd.append("--" + arg)
+        node_cmd.append(
+            "--"
+            + (
+                "sizeLimit"
+                if arg in ["sizeSoftLimit", "sizeHardLimit"]
+                else "timeLimit" if arg in ["timeSoftLimit", "timeHardLimit"] else arg
+            )
+        )
         if not isinstance(value, bool):
             node_cmd.append(str(value))
 

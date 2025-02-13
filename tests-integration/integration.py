@@ -3,13 +3,34 @@ import json
 import os
 from pathlib import Path
 
+import pytest
 from warcio import ArchiveIterator
 from zimscraperlib.zim import Archive
 
 
-def test_is_file():
+@pytest.mark.parametrize(
+    "filename",
+    [
+        pytest.param("/output/tests_en_onepage.zim", id="onepage"),
+        pytest.param("/output/tests_en_sizesoftlimit.zim", id="sizesoftlimit"),
+        pytest.param("/output/tests_en_timesoftlimit.zim", id="timesoftlimit"),
+    ],
+)
+def test_zim_created(filename):
     """Ensure ZIM file exists"""
-    assert os.path.isfile("/output/tests_en_onepage.zim")
+    assert os.path.isfile(filename)
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        pytest.param("/output/tests_en_sizehardlimit.zim", id="sizehardlimit"),
+        pytest.param("/output/tests_en_timehardlimit.zim", id="timehardlimit"),
+    ],
+)
+def test_zim_not_created(filename):
+    """Ensure ZIM file does not exists"""
+    assert not os.path.exists(filename)
 
 
 def test_zim_main_page():
@@ -85,12 +106,12 @@ def test_user_agent():
     assert found
 
 
-def test_stats_output():
+def test_stats_output_standard():
     assert json.loads(Path("/output/crawl.json").read_bytes()) == {
         "crawled": 17,
         "pending": 0,
         "pendingPages": [],
-        "total": 17,
+        "total": 35,
         "failed": 18,
         "limit": {"max": 0, "hit": False},
     }
@@ -103,5 +124,22 @@ def test_stats_output():
     assert json.loads(Path("/output/stats.json").read_bytes()) == {
         "done": 8,
         "total": 8,
-        "limit": {"max": 0, "hit": False},
+        "partialZim": False,
     }
+
+
+@pytest.mark.parametrize(
+    "filename",
+    [
+        pytest.param("/output/stats_sizesoftlimit.json", id="sizesoftlimit"),
+        pytest.param("/output/stats_timesoftlimit.json", id="timesoftlimit"),
+    ],
+)
+def test_stats_output_softlimit(filename):
+    file = Path(filename)
+    assert file.exists
+    content = json.loads(file.read_bytes())
+    assert "done" in content
+    assert "total" in content
+    assert "partialZim" in content
+    assert content["partialZim"]

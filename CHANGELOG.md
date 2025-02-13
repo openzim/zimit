@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Change solution to report partial ZIM to the Zimfarm and other clients (#304)
+
+### Fixed
+
+- Do not create the ZIM when crawl is incomplete (#444)
+
 ## [2.1.8] - 2024-02-07
 
 ### Changed

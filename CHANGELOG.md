@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change solution to report partial ZIM to the Zimfarm and other clients (#304)
+- Add many missing Browsertrix Crawler arguments ; drop default overrides by zimit ; drop `--noMobileDevice` setting (not needed anymore) (#433)
+- Document all Browsertrix Crawler default arguments values (#416)
 
 ### Fixed
 

@@ -128,15 +128,21 @@ def run(raw_args):
         description="Run a browser-based crawl on the specified URL and convert to ZIM"
     )
 
-    parser.add_argument("-u", "--url", help="The URL to start crawling from")
+    parser.add_argument(
+        "--seeds",
+        help="The seed URL(s) to start crawling from. Multile seed URL must be "
+        "separated by a comma (usually not needed, these are just the crawl seeds). "
+        "First seed URL is used as ZIM homepage",
+    )
 
-    parser.add_argument("--title", help="ZIM title")
-    parser.add_argument("--description", help="ZIM description")
+    parser.add_argument("--title", help="WARC and ZIM title")
+    parser.add_argument("--description", help="WARC and ZIM description")
     parser.add_argument("--long-description", help="ZIM long description metadata")
 
     parser.add_argument(
-        "--urlFile",
-        help="If set, read a list of seed urls, one per line, from the specified",
+        "--seedFile",
+        help="If set, read a list of seed urls, one per line. Can be a local file or "
+        "the HTTP(s) URL to an online file.",
     )
 
     parser.add_argument(
@@ -170,7 +176,7 @@ def run(raw_args):
     )
 
     parser.add_argument(
-        "--limit",
+        "--pageLimit",
         help="Limit crawl to this number of pages. Default is 0 (no limit).",
         type=int,
     )
@@ -183,7 +189,7 @@ def run(raw_args):
     )
 
     parser.add_argument(
-        "--timeout",
+        "--pageLoadTimeout",
         help="Timeout for each page to load (in seconds). Default is 90 secs.",
         type=int,
     )
@@ -197,13 +203,13 @@ def run(raw_args):
     )
 
     parser.add_argument(
-        "--include",
+        "--scopeIncludeRx",
         help="Regex of page URLs that should be included in the crawl (defaults to "
         "the immediate directory of URL)",
     )
 
     parser.add_argument(
-        "--exclude",
+        "--scopeExcludeRx",
         help="Regex of page URLs that should be excluded from the crawl",
     )
 
@@ -446,7 +452,7 @@ def run(raw_args):
     )
 
     parser.add_argument(
-        "--delay",
+        "--pageExtraDelay",
         help="If >0, amount of time to sleep (in seconds) after behaviors "
         "before moving on to next page. Default is 0.",
         type=int,
@@ -762,16 +768,40 @@ def run(raw_args):
         warc2zim_args.append("--output")
         warc2zim_args.append(zimit_args.output)
 
-    url = zimit_args.url
-
     user_agent_suffix = zimit_args.userAgentSuffix
     if zimit_args.adminEmail:
         user_agent_suffix += f" {zimit_args.adminEmail}"
 
-    if url:
-        url = get_cleaned_url(url)
-        warc2zim_args.append("--url")
-        warc2zim_args.append(url)
+    # make temp dir for this crawl
+    global temp_root_dir  # noqa: PLW0603
+    if zimit_args.build:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
+    else:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
+
+    seeds = []
+    if zimit_args.seeds:
+        seeds += [get_cleaned_url(url) for url in zimit_args.seeds.split(",")]
+    if zimit_args.seedFile:
+        if re.match(r"^https?\://", zimit_args.seedFile):
+            with tempfile.NamedTemporaryFile(
+                dir=temp_root_dir,
+                prefix="seeds_",
+                suffix=".txt",
+                delete_on_close=True,
+            ) as filename:
+                seed_file = Path(filename.name)
+                download_file(zimit_args.seedFile, seed_file)
+                seeds += [
+                    get_cleaned_url(url) for url in seed_file.read_text().splitlines()
+                ]
+        else:
+            seeds += [
+                get_cleaned_url(url)
+                for url in Path(zimit_args.seedFile).read_text().splitlines()
+            ]
+    warc2zim_args.append("--url")
+    warc2zim_args.append(seeds[0])
 
     if zimit_args.custom_css:
         warc2zim_args += ["--custom-css", zimit_args.custom_css]
@@ -799,13 +829,6 @@ def run(raw_args):
     if res != NORMAL_WARC2ZIM_EXIT_CODE:
         logger.info("Exiting, invalid warc2zim params")
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
-
-    # make temp dir for this crawl
-    global temp_root_dir  # noqa: PLW0603
-    if zimit_args.build:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
-    else:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
         atexit.register(cleanup)
@@ -841,9 +864,9 @@ def run(raw_args):
         zimit_args.customBehaviors = None
 
     cmd_args = get_node_cmd_line(zimit_args)
-    if url:
-        cmd_args.append("--url")
-        cmd_args.append(url)
+    for seed in seeds:
+        cmd_args.append("--seeds")
+        cmd_args.append(seed)
 
     cmd_args.append("--userAgentSuffix")
     cmd_args.append(user_agent_suffix)
@@ -1032,18 +1055,17 @@ def get_node_cmd_line(args):
     for arg in [
         "title",
         "description",
-        "urlFile",
         "workers",
         "crawlId",
         "waitUntil",
         "depth",
         "extraHops",
-        "limit",
+        "pageLimit",
         "maxPageLimit",
-        "timeout",
+        "pageLoadTimeout",
         "scopeType",
-        "include",
-        "exclude",
+        "scopeIncludeRx",
+        "scopeExcludeRx",
         "collection",
         "allowHashUrls",
         "selectLinks",
@@ -1074,7 +1096,7 @@ def get_node_cmd_line(args):
         "behaviors",
         "behaviorTimeout",
         "postLoadDelay",
-        "delay",
+        "pageExtraDelay",
         "dedupPolicy",
         "profile",
         "screenshot",

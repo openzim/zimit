@@ -38,16 +38,15 @@ Usage
 
 `zimit` is intended to be run in Docker. Docker image is published at https://github.com/orgs/openzim/packages/container/package/zimit.
 
-The image accepts the following parameters, **as well as any of the [warc2zim](https://github.com/openzim/warc2zim) ones**; useful for setting metadata, for instance:
+The image accepts the following parameters, **as well as any of the [Browsertrix crawler](https://crawler.docs.browsertrix.com/user-guide/cli-options/) and [warc2zim](https://github.com/openzim/warc2zim) ones**:
 
-- Required: `--url URL` - the url to be crawled
+- Required: `--seeds URL` - the url to start crawling from ; multiple URLs can be separated by a comma (even if **usually not needed**, these are just the **seeds** of the crawl) ; first seed URL is used as ZIM homepage
 - Required: `--name` - Name of ZIM file
 - `--output` - output directory (defaults to `/output`)
-- `--limit U` - Limit capture to at most U URLs
-- `--behaviors` - Control which browsertrix behaviors are ran (defaults to `autoplay,autofetch,siteSpecific`, adding `autoscroll` to the list is possible to automatically scroll the pages and fetch resources which are lazy loaded)
-- `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded.
+- `--pageLimit U` - Limit capture to at most U URLs
+- `--scopeExcludeRx <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--scopeExcludeRx="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded.
 - `--workers N` - number of crawl workers to be run in parallel
-- `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
+- `--waitUntil` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--waitUntil domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
 - `--keep` - in case of failure, WARC files and other temporary files (which are stored as a subfolder of output directory) are always kept, otherwise they are automatically deleted. Use this flag to always keep WARC files, even in case of success.
 
 Example command:
@@ -55,7 +54,7 @@ Example command:
 ```bash
 docker run ghcr.io/openzim/zimit zimit --help
 docker run ghcr.io/openzim/zimit warc2zim --help
-docker run  -v /output:/output ghcr.io/openzim/zimit zimit --url URL --name myzimfile
+docker run  -v /output:/output ghcr.io/openzim/zimit zimit --seeds URL --name myzimfile
 ```
 
 **Note**: Image automatically filters out a large number of ads by using the 3 blocklists from [anudeepND](https://github.com/anudeepND/blacklist). If you don't want this filtering, disable the image's entrypoint in your container (`docker run --entrypoint="" ghcr.io/openzim/zimit ...`).

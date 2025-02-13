@@ -334,7 +334,10 @@ def run(raw_args):
 
     parser.add_argument(
         "--keep",
-        help="If set, keep WARC files after crawl, don't delete",
+        help="In case of failure, WARC files and other temporary files (which are "
+        "stored as a subfolder of output directory) are always kept, otherwise "
+        "they are automatically deleted. Use this flag to always keep WARC files, "
+        "even in case of success.",
         action="store_true",
     )
 

@@ -33,6 +33,8 @@ from zimit.constants import (
 )
 from zimit.utils import download_file
 
+temp_root_dir: Path | None = None
+
 
 class ProgressFileWatcher:
     def __init__(self, output_dir: Path, stats_path: Path):
@@ -101,6 +103,24 @@ class ProgressFileWatcher:
                     continue
                 with open(output_fpath, "w") as ofh:
                     json.dump(out, ofh)
+
+
+def cleanup():
+    if not temp_root_dir:
+        logger.warning("Temporary root dir not already set, cannot clean this up")
+        return
+    logger.info("")
+    logger.info("----------")
+    logger.info(f"Cleanup, removing temp dir: {temp_root_dir}")
+    shutil.rmtree(temp_root_dir)
+
+
+def cancel_cleanup():
+    logger.info(
+        f"Temporary files have been kept in {temp_root_dir}, please clean them"
+        " up manually once you don't need them anymore"
+    )
+    atexit.unregister(cleanup)
 
 
 def run(raw_args):
@@ -314,7 +334,10 @@ def run(raw_args):
 
     parser.add_argument(
         "--keep",
-        help="If set, keep WARC files after crawl, don't delete",
+        help="In case of failure, WARC files and other temporary files (which are "
+        "stored as a subfolder of output directory) are always kept, otherwise "
+        "they are automatically deleted. Use this flag to always keep WARC files, "
+        "even in case of success.",
         action="store_true",
     )
 
@@ -427,19 +450,13 @@ def run(raw_args):
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
     # make temp dir for this crawl
+    global temp_root_dir  # noqa: PLW0603
     if zimit_args.build:
         temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
     else:
         temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
 
     if not zimit_args.keep:
-
-        def cleanup():
-            logger.info("")
-            logger.info("----------")
-            logger.info(f"Cleanup, removing temp dir: {temp_root_dir}")
-            shutil.rmtree(temp_root_dir)
-
         atexit.register(cleanup)
 
     # copy / download custom behaviors to one single folder and configure crawler
@@ -599,6 +616,7 @@ def run(raw_args):
             logger.error(
                 f"Crawl returned an error: {crawl.returncode}, scraper exiting"
             )
+            cancel_cleanup()
             return crawl.returncode
 
         if zimit_args.collection:
@@ -641,6 +659,11 @@ def run(raw_args):
         stats_content = json.loads(stats.read_bytes())
         stats_content["partialZim"] = partial_zim
         stats.write_text(json.dumps(stats_content))
+
+    # also call cancel_cleanup when --keep, even if it is not supposed to be registered,
+    # so that we will display temporary files location just like in other situations
+    if warc2zim_exit_code or zimit_args.keep:
+        cancel_cleanup()
 
     return warc2zim_exit_code
 

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Change solution to report partial ZIM to the Zimfarm and other clients (#304)
+- Keep temporary folder when crawler or warc2zim fails, even if not asked for (#468)
 
 ### Fixed
 

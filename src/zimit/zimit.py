@@ -777,7 +777,9 @@ def run(raw_args):
         " used). Single value with individual error codes separated by comma",
     )
 
-    zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
+    # by design, all unknown args are for warc2zim ; known one are either for crawler
+    # or shared
+    known_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     # pass a scraper suffix to warc2zim so that both zimit and warc2zim versions are
     # associated with the ZIM ; make it a CSV for easier parsing
@@ -785,26 +787,26 @@ def run(raw_args):
     warc2zim_args.append(f"zimit {__version__}")
 
     # pass url and output to warc2zim also
-    if zimit_args.output:
+    if known_args.output:
         warc2zim_args.append("--output")
-        warc2zim_args.append(zimit_args.output)
+        warc2zim_args.append(known_args.output)
 
-    user_agent_suffix = zimit_args.userAgentSuffix
-    if zimit_args.adminEmail:
-        user_agent_suffix += f" {zimit_args.adminEmail}"
+    user_agent_suffix = known_args.userAgentSuffix
+    if known_args.adminEmail:
+        user_agent_suffix += f" {known_args.adminEmail}"
 
     # make temp dir for this crawl
     global temp_root_dir  # noqa: PLW0603
-    if zimit_args.build:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
+    if known_args.build:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.build, prefix=".tmp"))
     else:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
+        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.output, prefix=".tmp"))
 
     seeds = []
-    if zimit_args.seeds:
-        seeds += [get_cleaned_url(url) for url in zimit_args.seeds.split(",")]
-    if zimit_args.seedFile:
-        if re.match(r"^https?\://", zimit_args.seedFile):
+    if known_args.seeds:
+        seeds += [get_cleaned_url(url) for url in known_args.seeds.split(",")]
+    if known_args.seedFile:
+        if re.match(r"^https?\://", known_args.seedFile):
             with tempfile.NamedTemporaryFile(
                 dir=temp_root_dir,
                 prefix="seeds_",
@@ -812,36 +814,36 @@ def run(raw_args):
                 delete_on_close=True,
             ) as filename:
                 seed_file = Path(filename.name)
-                download_file(zimit_args.seedFile, seed_file)
+                download_file(known_args.seedFile, seed_file)
                 seeds += [
                     get_cleaned_url(url) for url in seed_file.read_text().splitlines()
                 ]
         else:
             seeds += [
                 get_cleaned_url(url)
-                for url in Path(zimit_args.seedFile).read_text().splitlines()
+                for url in Path(known_args.seedFile).read_text().splitlines()
             ]
     warc2zim_args.append("--url")
     warc2zim_args.append(seeds[0])
 
-    if zimit_args.custom_css:
-        warc2zim_args += ["--custom-css", zimit_args.custom_css]
+    if known_args.custom_css:
+        warc2zim_args += ["--custom-css", known_args.custom_css]
 
-    if zimit_args.title:
+    if known_args.title:
         warc2zim_args.append("--title")
-        warc2zim_args.append(zimit_args.title)
+        warc2zim_args.append(known_args.title)
 
-    if zimit_args.description:
+    if known_args.description:
         warc2zim_args.append("--description")
-        warc2zim_args.append(zimit_args.description)
+        warc2zim_args.append(known_args.description)
 
-    if zimit_args.long_description:
+    if known_args.long_description:
         warc2zim_args.append("--long-description")
-        warc2zim_args.append(zimit_args.long_description)
+        warc2zim_args.append(known_args.long_description)
 
-    if zimit_args.zim_lang:
+    if known_args.zim_lang:
         warc2zim_args.append("--lang")
-        warc2zim_args.append(zimit_args.zim_lang)
+        warc2zim_args.append(known_args.zim_lang)
 
     logger.info("----------")
     logger.info("Testing warc2zim args")
@@ -851,16 +853,16 @@ def run(raw_args):
         logger.info("Exiting, invalid warc2zim params")
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
-    if not zimit_args.keep:
+    if not known_args.keep:
         atexit.register(cleanup)
 
     # copy / download custom behaviors to one single folder and configure crawler
-    if zimit_args.custom_behaviors:
+    if known_args.custom_behaviors:
         behaviors_dir = temp_root_dir / "custom-behaviors"
         behaviors_dir.mkdir()
         for custom_behavior in [
             custom_behavior.strip()
-            for custom_behavior in zimit_args.custom_behaviors.split(",")
+            for custom_behavior in known_args.custom_behaviors.split(",")
         ]:
             behaviors_file = tempfile.NamedTemporaryFile(
                 dir=behaviors_dir,
@@ -880,25 +882,25 @@ def run(raw_args):
                     f"to {behaviors_file.name}"
                 )
                 shutil.copy(custom_behavior, behaviors_file.name)
-        zimit_args.customBehaviors = str(behaviors_dir)
+        known_args.customBehaviors = str(behaviors_dir)
     else:
-        zimit_args.customBehaviors = None
+        known_args.customBehaviors = None
 
-    cmd_args = get_node_cmd_line(zimit_args)
+    crawler_args = get_crawler_cmd_line(known_args)
     for seed in seeds:
-        cmd_args.append("--seeds")
-        cmd_args.append(seed)
+        crawler_args.append("--seeds")
+        crawler_args.append(seed)
 
-    cmd_args.append("--userAgentSuffix")
-    cmd_args.append(user_agent_suffix)
+    crawler_args.append("--userAgentSuffix")
+    crawler_args.append(user_agent_suffix)
 
-    cmd_args.append("--cwd")
-    cmd_args.append(str(temp_root_dir))
+    crawler_args.append("--cwd")
+    crawler_args.append(str(temp_root_dir))
 
-    output_dir = Path(zimit_args.output)
+    output_dir = Path(known_args.output)
     warc2zim_stats_file = (
-        Path(zimit_args.warc2zim_progress_file)
-        if zimit_args.warc2zim_progress_file
+        Path(known_args.warc2zim_progress_file)
+        if known_args.warc2zim_progress_file
         else temp_root_dir / "warc2zim.json"
     )
     if not warc2zim_stats_file.is_absolute():
@@ -907,8 +909,8 @@ def run(raw_args):
     warc2zim_stats_file.unlink(missing_ok=True)
 
     crawler_stats_file = (
-        Path(zimit_args.statsFilename)
-        if zimit_args.statsFilename
+        Path(known_args.statsFilename)
+        if known_args.statsFilename
         else temp_root_dir / "crawl.json"
     )
     if not crawler_stats_file.is_absolute():
@@ -917,8 +919,8 @@ def run(raw_args):
     crawler_stats_file.unlink(missing_ok=True)
 
     zimit_stats_file = (
-        Path(zimit_args.zimit_progress_file)
-        if zimit_args.zimit_progress_file
+        Path(known_args.zimit_progress_file)
+        if known_args.zimit_progress_file
         else temp_root_dir / "stats.json"
     )
     if not zimit_stats_file.is_absolute():
@@ -926,7 +928,7 @@ def run(raw_args):
         zimit_stats_file.parent.mkdir(parents=True, exist_ok=True)
     zimit_stats_file.unlink(missing_ok=True)
 
-    if zimit_args.zimit_progress_file:
+    if known_args.zimit_progress_file:
         # setup inotify crawler progress watcher
         watcher = ProgressFileWatcher(
             zimit_stats_path=zimit_stats_file,
@@ -939,31 +941,31 @@ def run(raw_args):
             f"{watcher.warc2zim_stats_path}"
         )
         # update crawler command
-        cmd_args.append("--statsFilename")
-        cmd_args.append(str(crawler_stats_file))
+        crawler_args.append("--statsFilename")
+        crawler_args.append(str(crawler_stats_file))
         # update warc2zim command
         warc2zim_args.append("-v")
         warc2zim_args.append("--progress-file")
         warc2zim_args.append(str(warc2zim_stats_file))
         watcher.watch()
     else:
-        if zimit_args.statsFilename:
+        if known_args.statsFilename:
             logger.info(f"Writing crawler progress to {crawler_stats_file}")
-            cmd_args.append("--statsFilename")
-            cmd_args.append(str(crawler_stats_file))
-        if zimit_args.warc2zim_progress_file:
+            crawler_args.append("--statsFilename")
+            crawler_args.append(str(crawler_stats_file))
+        if known_args.warc2zim_progress_file:
             logger.info(f"Writing warc2zim progress to {warc2zim_stats_file}")
             warc2zim_args.append("-v")
             warc2zim_args.append("--progress-file")
             warc2zim_args.append(str(warc2zim_stats_file))
 
-    cmd_line = " ".join(cmd_args)
+    cmd_line = " ".join(crawler_args)
 
     logger.info("")
     logger.info("----------")
     logger.info(
         f"Output to tempdir: {temp_root_dir} - "
-        f"{'will keep' if zimit_args.keep else 'will delete'}"
+        f"{'will keep' if known_args.keep else 'will delete'}"
     )
 
     partial_zim = False
@@ -971,9 +973,9 @@ def run(raw_args):
     # if warc files are passed, do not run browsertrix crawler but fetch the files if
     # they are provided as an HTTP URL + extract the archive if it is a tar.gz
     warc_files: list[Path] = []
-    if zimit_args.warcs:
+    if known_args.warcs:
         for warc_location in [
-            warc_location.strip() for warc_location in zimit_args.warcs.split(",")
+            warc_location.strip() for warc_location in known_args.warcs.split(",")
         ]:
             suffix = "".join(Path(urllib.parse.urlparse(warc_location).path).suffixes)
             if suffix not in {".tar", ".tar.gz", ".warc", ".warc.gz"}:
@@ -1031,24 +1033,24 @@ def run(raw_args):
     else:
 
         logger.info(f"Running browsertrix-crawler crawl: {cmd_line}")
-        crawl = subprocess.run(cmd_args, check=False)
+        crawl = subprocess.run(crawler_args, check=False)
         if (
             crawl.returncode == EXIT_CODE_CRAWLER_SIZE_LIMIT_HIT
-            and zimit_args.sizeSoftLimit
+            and known_args.sizeSoftLimit
         ):
             logger.info(
                 "Crawl size soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.zimit_progress_file:
+            if known_args.zimit_progress_file:
                 partial_zim = True
         elif (
             crawl.returncode == EXIT_CODE_CRAWLER_TIME_LIMIT_HIT
-            and zimit_args.timeSoftLimit
+            and known_args.timeSoftLimit
         ):
             logger.info(
                 "Crawl time soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.zimit_progress_file:
+            if known_args.zimit_progress_file:
                 partial_zim = True
         elif crawl.returncode != 0:
             logger.error(
@@ -1057,9 +1059,9 @@ def run(raw_args):
             cancel_cleanup()
             return crawl.returncode
 
-        if zimit_args.collection:
+        if known_args.collection:
             warc_files = [
-                temp_root_dir.joinpath(f"collections/{zimit_args.collection}/archive/")
+                temp_root_dir.joinpath(f"collections/{known_args.collection}/archive/")
             ]
 
         else:
@@ -1092,14 +1094,14 @@ def run(raw_args):
 
     warc2zim_exit_code = warc2zim(warc2zim_args)
 
-    if zimit_args.zimit_progress_file:
+    if known_args.zimit_progress_file:
         stats_content = json.loads(zimit_stats_file.read_bytes())
         stats_content["partialZim"] = partial_zim
         zimit_stats_file.write_text(json.dumps(stats_content))
 
     # also call cancel_cleanup when --keep, even if it is not supposed to be registered,
     # so that we will display temporary files location just like in other situations
-    if warc2zim_exit_code or zimit_args.keep:
+    if warc2zim_exit_code or known_args.keep:
         cancel_cleanup()
 
     return warc2zim_exit_code
@@ -1117,7 +1119,8 @@ def get_cleaned_url(url: str):
     return parsed_url.geturl()
 
 
-def get_node_cmd_line(args):
+def get_crawler_cmd_line(args):
+    """Build the command line for Browsertrix crawler"""
     node_cmd = ["crawl"]
     for arg in [
         "title",

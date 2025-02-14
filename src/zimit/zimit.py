@@ -37,17 +37,16 @@ temp_root_dir: Path | None = None
 
 
 class ProgressFileWatcher:
-    def __init__(self, output_dir: Path, stats_path: Path):
-        self.crawl_path = output_dir / "crawl.json"
-        self.warc2zim_path = output_dir / "warc2zim.json"
-        self.stats_path = stats_path
-
-        if not self.stats_path.is_absolute():
-            self.stats_path = output_dir / self.stats_path
+    def __init__(
+        self, crawl_stats_path: Path, warc2zim_stats_path, zimit_stats_path: Path
+    ):
+        self.crawl_stats_path = crawl_stats_path
+        self.warc2zim_stats_path = warc2zim_stats_path
+        self.zimit_stats_path = zimit_stats_path
 
         # touch them all so inotify is not unhappy on add_watch
-        self.crawl_path.touch()
-        self.warc2zim_path.touch()
+        self.crawl_stats_path.touch()
+        self.warc2zim_stats_path.touch()
         self.process = None
 
     def stop(self):
@@ -59,12 +58,16 @@ class ProgressFileWatcher:
     def watch(self):
         self.process = Process(
             target=self.inotify_watcher,
-            args=(str(self.crawl_path), str(self.warc2zim_path), str(self.stats_path)),
+            args=(
+                str(self.crawl_stats_path),
+                str(self.warc2zim_stats_path),
+                str(self.zimit_stats_path),
+            ),
         )
         self.process.daemon = True
         self.process.start()
 
-    def inotify_watcher(self, crawl_fpath: str, warc2zim_fpath: str, output_fpath: str):
+    def inotify_watcher(self, crawl_fpath: str, warc2zim_fpath: str, zimit_fpath: str):
         ino = inotify.adapters.Inotify()
         ino.add_watch(crawl_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
         ino.add_watch(warc2zim_fpath, inotify.constants.IN_MODIFY)  # pyright: ignore
@@ -101,7 +104,7 @@ class ProgressFileWatcher:
                     continue
                 if not out:
                     continue
-                with open(output_fpath, "w") as ofh:
+                with open(zimit_fpath, "w") as ofh:
                     json.dump(out, ofh)
 
 
@@ -128,112 +131,271 @@ def run(raw_args):
         description="Run a browser-based crawl on the specified URL and convert to ZIM"
     )
 
-    parser.add_argument("-u", "--url", help="The URL to start crawling from")
-    parser.add_argument("--title", help="ZIM title")
-    parser.add_argument("--description", help="ZIM description")
+    parser.add_argument(
+        "--seeds",
+        help="The seed URL(s) to start crawling from. Multile seed URL must be "
+        "separated by a comma (usually not needed, these are just the crawl seeds). "
+        "First seed URL is used as ZIM homepage",
+    )
+
+    parser.add_argument("--title", help="WARC and ZIM title")
+    parser.add_argument("--description", help="WARC and ZIM description")
     parser.add_argument("--long-description", help="ZIM long description metadata")
 
     parser.add_argument(
-        "--urlFile",
-        help="If set, read a list of seed urls, one per line, from the specified",
+        "--seedFile",
+        help="If set, read a list of seed urls, one per line. Can be a local file or "
+        "the HTTP(s) URL to an online file.",
     )
 
-    parser.add_argument("-w", "--workers", type=int, help="Number of parallel workers")
+    parser.add_argument(
+        "-w", "--workers", type=int, help="Number of parallel workers. Default is 1."
+    )
+
+    parser.add_argument(
+        "--crawlId",
+        help="A user provided ID for this crawl or crawl configuration (can also be "
+        "set via CRAWL_ID env var, defaults to machine hostname)",
+    )
 
     parser.add_argument(
         "--waitUntil",
         help="Puppeteer page.goto() condition to wait for before continuing. One of "
         "load, domcontentloaded, networkidle0 or networkidle2, or a "
-        "comma-separated combination of those.",
-        default="load",
+        "comma-separated combination of those. Default is load,networkidle2",
     )
 
     parser.add_argument(
-        "--depth", help="The depth of the crawl for all seeds", type=int, default=-1
+        "--depth",
+        help="The depth of the crawl for all seeds. Default is -1 (infinite).",
+        type=int,
     )
 
     parser.add_argument(
         "--extraHops",
-        help="Number of extra 'hops' to follow, beyond the current scope",
+        help="Number of extra 'hops' to follow, beyond the current scope. "
+        "Default is 0.",
         type=int,
     )
 
-    parser.add_argument("--limit", help="Limit crawl to this number of pages", type=int)
+    parser.add_argument(
+        "--pageLimit",
+        help="Limit crawl to this number of pages. Default is 0 (no limit).",
+        type=int,
+    )
 
     parser.add_argument(
         "--maxPageLimit",
-        help="Maximum pages to crawl, overriding pageLimit if both are set",
+        help="Maximum pages to crawl, overriding pageLimit if both are set. Default is "
+        "0 (no limit)",
         type=int,
     )
 
     parser.add_argument(
-        "--timeout",
-        help="Timeout for each page to load (in seconds)",
+        "--pageLoadTimeout",
+        help="Timeout for each page to load (in seconds). Default is 90 secs.",
         type=int,
-        default=90,
     )
 
     parser.add_argument(
         "--scopeType",
         help="A predfined scope of the crawl. For more customization, "
-        "use 'custom' and set scopeIncludeRx regexes",
+        "use 'custom' and set scopeIncludeRx/scopeExcludeRx regexes. Default is custom"
+        "if scopeIncludeRx is set, prefix otherwise.",
         choices=["page", "page-spa", "prefix", "host", "domain", "any", "custom"],
     )
 
     parser.add_argument(
-        "--include",
-        help="Regex of page URLs that should be "
-        "included in the crawl (defaults to "
+        "--scopeIncludeRx",
+        help="Regex of page URLs that should be included in the crawl (defaults to "
         "the immediate directory of URL)",
     )
 
     parser.add_argument(
-        "--exclude",
+        "--scopeExcludeRx",
         help="Regex of page URLs that should be excluded from the crawl",
+    )
+
+    parser.add_argument(
+        "--allowHashUrls",
+        help="Allow Hashtag URLs, useful for single-page-application crawling or "
+        "when different hashtags load dynamic content",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--selectLinks",
+        help="One or more selectors for extracting links, in the format "
+        "[css selector]->[property to use],[css selector]->@[attribute to use]",
+    )
+
+    parser.add_argument(
+        "--clickSelector",
+        help="Selector for elements to click when using the autoclick behavior. Default"
+        " is 'a'",
+    )
+
+    parser.add_argument(
+        "--blockRules",
+        help="Additional rules for blocking certain URLs from being loaded, by URL "
+        "regex and optionally via text match in an iframe",
+    )
+
+    parser.add_argument(
+        "--blockMessage",
+        help="If specified, when a URL is blocked, a record with this error message is"
+        " added instead",
+    )
+
+    parser.add_argument(
+        "--blockAds",
+        help="If set, block advertisements from being loaded (based on Stephen Black's"
+        " blocklist). Note that some bad domains are also blocked by zimit"
+        " configuration even if this option is not set.",
+    )
+
+    parser.add_argument(
+        "--adBlockMessage",
+        help="If specified, when an ad is blocked, a record with this error message is"
+        " added instead",
     )
 
     parser.add_argument(
         "--collection",
         help="Collection name to crawl to (replay will be accessible "
-        "under this name in pywb preview) instead of crawl-@ts",
+        "under this name in pywb preview). Default is crawl-@ts.",
     )
 
     parser.add_argument(
-        "--allowHashUrls",
-        help="Allow Hashtag URLs, useful for "
-        "single-page-application crawling or "
-        "when different hashtags load dynamic "
-        "content",
+        "--headless",
+        help="Run in headless mode, otherwise start xvfb",
         action="store_true",
     )
 
     parser.add_argument(
-        "--lang",
-        help="if set, sets the language used by the browser, should be ISO 639 "
-        "language[-country] code",
+        "--driver",
+        help="Custom driver for the crawler, if any",
     )
 
     parser.add_argument(
-        "--zim-lang",
-        help="Language metadata of ZIM "
-        "(warc2zim --lang param). ISO-639-3 code. "
-        "Retrieved from homepage if found, fallback to `eng`",
+        "--generateCDX",
+        help="If set, generate index (CDXJ) for use with pywb after crawl is done",
+        action="store_true",
     )
+
+    parser.add_argument(
+        "--combineWARC",
+        help="If set, combine the warcs",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--rolloverSize",
+        help="If set, declare the rollover size. Default is 1000000000.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--generateWACZ",
+        help="If set, generate WACZ on disk",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--logging",
+        help="Crawler logging configuration",
+    )
+
+    parser.add_argument(
+        "--logLevel",
+        help="Comma-separated list of log levels to include in logs",
+    )
+
+    parser.add_argument(
+        "--logContext",
+        help="Comma-separated list of contexts to include in logs",
+        choices=[
+            "general",
+            "worker",
+            "recorder",
+            "recorderNetwork",
+            "writer",
+            "state",
+            "redis",
+            "storage",
+            "text",
+            "exclusion",
+            "screenshots",
+            "screencast",
+            "originOverride",
+            "healthcheck",
+            "browser",
+            "blocking",
+            "behavior",
+            "behaviorScript",
+            "jsError",
+            "fetch",
+            "pageStatus",
+            "memoryStatus",
+            "crawlStatus",
+            "links",
+            "sitemap",
+            "wacz",
+            "replay",
+            "proxy",
+        ],
+    )
+
+    parser.add_argument(
+        "--logExcludeContext",
+        help="Comma-separated list of contexts to NOT include in logs. Default is "
+        "recorderNetwork,jsError,screencast",
+        choices=[
+            "general",
+            "worker",
+            "recorder",
+            "recorderNetwork",
+            "writer",
+            "state",
+            "redis",
+            "storage",
+            "text",
+            "exclusion",
+            "screenshots",
+            "screencast",
+            "originOverride",
+            "healthcheck",
+            "browser",
+            "blocking",
+            "behavior",
+            "behaviorScript",
+            "jsError",
+            "fetch",
+            "pageStatus",
+            "memoryStatus",
+            "crawlStatus",
+            "links",
+            "sitemap",
+            "wacz",
+            "replay",
+            "proxy",
+        ],
+    )
+
+    parser.add_argument(
+        "--text",
+        help="Extract initial (default) or final text to pages.jsonl or WARC resource"
+        " record(s)",
+    )
+
+    # cwd is manipulated directly by zimit, based on --output / --build, we do not want
+    # to expose this setting
 
     parser.add_argument(
         "--mobileDevice",
         help="Emulate mobile device by name from "
         "https://github.com/puppeteer/puppeteer/blob/"
         "main/packages/puppeteer-core/src/common/Device.ts",
-        default="Pixel 2",
-    )
-
-    parser.add_argument(
-        "--noMobileDevice",
-        help="Do not emulate a mobile device (use at your own risk, behavior is"
-        "uncertain)",
-        action="store_true",
-        default=False,
     )
 
     parser.add_argument(
@@ -256,30 +418,119 @@ def run(raw_args):
     )
 
     parser.add_argument(
+        "--sitemapFromDate",
+        help="If set, filter URLs from sitemaps to those greater than or equal to (>=)"
+        " provided ISO Date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS or partial date)",
+    )
+
+    parser.add_argument(
+        "--sitemapToDate",
+        help="If set, filter URLs from sitemaps to those less than or equal to (<=) "
+        "provided ISO Date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS or partial date)",
+    )
+
+    parser.add_argument(
+        "--statsFilename",
+        help="If set, output crawl stats as JSON to this file. Relative filename "
+        "resolves to output directory, see --output.",
+    )
+
+    parser.add_argument(
+        "--zimit-progress-file",
+        help="If set, output zimit stats as JSON to this file. Forces the creation of"
+        "crawler and warc2zim stats as well. If --statsFilename and/or "
+        "--warc2zim-progress-file are not set, default temporary files will be used. "
+        "Relative filename resolves to output directory, see --output.",
+    )
+
+    parser.add_argument(
+        "--warc2zim-progress-file",
+        help="If set, output warc2zim stats as JSON to this file. Relative filename "
+        "resolves to output directory, see --output.",
+    )
+
+    parser.add_argument(
         "--behaviors",
-        help="Which background behaviors to enable on each page",
-        default="autoplay,autofetch,siteSpecific",
+        help="Which background behaviors to enable on each page. Default is autoplay,"
+        "autofetch,autoscroll,siteSpecific",
     )
 
     parser.add_argument(
         "--behaviorTimeout",
         help="If >0, timeout (in seconds) for in-page behavior will run on each page. "
-        "If 0, a behavior can run until finish",
+        "If 0, a behavior can run until finish. Default is 90.",
         type=int,
-        default=90,
     )
 
     parser.add_argument(
-        "--delay",
-        help="If >0, amount of time to sleep (in seconds) after behaviors "
-        "before moving on to next page",
+        "--postLoadDelay",
+        help="If >0, amount of time to sleep (in seconds) after page has loaded, before"
+        " taking screenshots / getting text / running behaviors. Default is 0.",
         type=int,
+    )
+
+    parser.add_argument(
+        "--pageExtraDelay",
+        help="If >0, amount of time to sleep (in seconds) after behaviors "
+        "before moving on to next page. Default is 0.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--dedupPolicy",
+        help="Deduplication policy. Default is skip",
+        choices=["skip", "revisit", "keep"],
     )
 
     parser.add_argument(
         "--profile",
         help="Path or HTTP(S) URL to tar.gz file which contains the browser profile "
         "directory",
+    )
+
+    parser.add_argument(
+        "--screenshot",
+        help="Screenshot options for crawler. One of view, thumbnail, fullPage, "
+        "fullPageFinal or a comma-separated combination of those.",
+    )
+
+    parser.add_argument(
+        "--screencastPort",
+        help="If set to a non-zero value, starts an HTTP server with screencast "
+        "accessible on this port.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--screencastRedis",
+        help="If set, will use the state store redis pubsub for screencasting",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--warcInfo",
+        help="Optional fields added to the warcinfo record in combined WARCs",
+    )
+
+    parser.add_argument(
+        "--saveState",
+        help="If the crawl state should be serialized to the crawls/ directory. "
+        "Defaults to 'partial', only saved when crawl is interrupted",
+        choices=["never", "partial", "always"],
+    )
+
+    parser.add_argument(
+        "--saveStateInterval",
+        help="If save state is set to 'always', also save state during the crawl at "
+        "this interval (in seconds). Default to 300.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--saveStateHistory",
+        help="Number of save states to keep during the duration of a crawl. "
+        "Default to 5.",
+        type=int,
     )
 
     size_group = parser.add_mutually_exclusive_group()
@@ -329,7 +580,134 @@ def run(raw_args):
         help="overwrite current crawl data: if set, existing collection directory "
         "will be deleted before crawl is started",
         action="store_true",
-        default=False,
+    )
+
+    parser.add_argument(
+        "--waitOnDone",
+        help="if set, wait for interrupt signal when finished instead of exiting",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--restartsOnError",
+        help="if set, assume will be restarted if interrupted, don't run post-crawl "
+        "processes on interrupt",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--netIdleWait",
+        help="If set, wait for network idle after page load and after behaviors are "
+        "done (in seconds). if -1 (default), determine based on scope.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--lang",
+        help="if set, sets the language used by the browser, should be ISO 639 "
+        "language[-country] code",
+    )
+
+    parser.add_argument(
+        "--originOverride",
+        help="if set, will redirect requests from each origin in key to origin in the "
+        "value, eg. --originOverride https://host:port=http://alt-host:alt-port",
+    )
+
+    parser.add_argument(
+        "--logErrorsToRedis",
+        help="If set, write error messages to redis",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--writePagesToRedis",
+        help="If set, write page objects to redis",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--maxPageRetries",
+        help="If set, number of times to retry a page that failed to load before page"
+        " is considered to have failed. Default is 2.",
+        type=int,
+    )
+
+    parser.add_argument(
+        "--failOnFailedSeed",
+        help="If set, crawler will fail with exit code 1 if any seed fails. When "
+        "combined with --failOnInvalidStatus, will result in crawl failing with exit "
+        "code 1 if any seed has a 4xx/5xx response",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--failOnFailedLimit",
+        help="If set, save state and exit if number of failed pages exceeds this value",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--failOnInvalidStatus",
+        help="If set, will treat pages with 4xx or 5xx response as failures. When "
+        "combined with --failOnFailedLimit or --failOnFailedSeed may result in crawl "
+        "failing due to non-200 responses",
+        action="store_true",
+    )
+
+    # customBehaviors not included because it has special handling
+    # debugAccessRedis not included due to custom redis engine in zimit
+
+    parser.add_argument(
+        "--debugAccessBrowser",
+        help="if set, allow debugging browser on port 9222 via CDP",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--warcPrefix",
+        help="prefix for WARC files generated, including WARCs added to WACZ",
+    )
+
+    parser.add_argument(
+        "--serviceWorker",
+        help="service worker handling: disabled, enabled or disabled-if-profile. "
+        "Default: disabled.",
+    )
+
+    parser.add_argument(
+        "--proxyServer",
+        help="if set, will use specified proxy server. Takes precedence over any env "
+        "var proxy settings",
+    )
+
+    parser.add_argument(
+        "--dryRun",
+        help="If true, no archive data is written to disk, only pages and logs (and "
+        "optionally saved state).",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--qaSource",
+        help="Required for QA mode. Path to the source WACZ or multi WACZ file for QA",
+    )
+
+    parser.add_argument(
+        "--qaDebugImageDiff",
+        help="if specified, will write crawl.png, replay.png and diff.png for each "
+        "page where they're different",
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--sshProxyPrivateKeyFile",
+        help="path to SSH private key for SOCKS5 over SSH proxy connection",
+    )
+
+    parser.add_argument(
+        "--sshProxyKnownHostsFile",
+        help="path to SSH known hosts file for SOCKS5 over SSH proxy connection",
     )
 
     parser.add_argument(
@@ -341,7 +719,11 @@ def run(raw_args):
         action="store_true",
     )
 
-    parser.add_argument("--output", help="Output directory for ZIM", default="/output")
+    parser.add_argument(
+        "--output",
+        help="Output directory for ZIM. Default to /output.",
+        default="/output",
+    )
 
     parser.add_argument(
         "--build",
@@ -353,11 +735,6 @@ def run(raw_args):
     parser.add_argument(
         "--custom-css",
         help="[warc2zim] Custom CSS file URL/path to inject into all articles",
-    )
-
-    parser.add_argument(
-        "--statsFilename",
-        help="If set, output stats as JSON to this file",
     )
 
     parser.add_argument(
@@ -374,8 +751,10 @@ def run(raw_args):
     )
 
     parser.add_argument(
-        "--logging",
-        help="Crawler logging configuration",
+        "--zim-lang",
+        help="Language metadata of ZIM "
+        "(warc2zim --lang param). ISO-639-3 code. "
+        "Retrieved from homepage if found, fallback to `eng`",
     )
 
     parser.add_argument(
@@ -399,7 +778,9 @@ def run(raw_args):
         " used). Single value with individual error codes separated by comma",
     )
 
-    zimit_args, warc2zim_args = parser.parse_known_args(raw_args)
+    # by design, all unknown args are for warc2zim ; known one are either for crawler
+    # or shared
+    known_args, warc2zim_args = parser.parse_known_args(raw_args)
 
     # pass a scraper suffix to warc2zim so that both zimit and warc2zim versions are
     # associated with the ZIM ; make it a CSV for easier parsing
@@ -407,39 +788,63 @@ def run(raw_args):
     warc2zim_args.append(f"zimit {__version__}")
 
     # pass url and output to warc2zim also
-    if zimit_args.output:
+    if known_args.output:
         warc2zim_args.append("--output")
-        warc2zim_args.append(zimit_args.output)
+        warc2zim_args.append(known_args.output)
 
-    url = zimit_args.url
+    user_agent_suffix = known_args.userAgentSuffix
+    if known_args.adminEmail:
+        user_agent_suffix += f" {known_args.adminEmail}"
 
-    user_agent_suffix = zimit_args.userAgentSuffix
-    if zimit_args.adminEmail:
-        user_agent_suffix += f" {zimit_args.adminEmail}"
+    # make temp dir for this crawl
+    global temp_root_dir  # noqa: PLW0603
+    if known_args.build:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.build, prefix=".tmp"))
+    else:
+        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.output, prefix=".tmp"))
 
-    if url:
-        url = get_cleaned_url(url)
-        warc2zim_args.append("--url")
-        warc2zim_args.append(url)
+    seeds = []
+    if known_args.seeds:
+        seeds += [get_cleaned_url(url) for url in known_args.seeds.split(",")]
+    if known_args.seedFile:
+        if re.match(r"^https?\://", known_args.seedFile):
+            with tempfile.NamedTemporaryFile(
+                dir=temp_root_dir,
+                prefix="seeds_",
+                suffix=".txt",
+                delete_on_close=True,
+            ) as filename:
+                seed_file = Path(filename.name)
+                download_file(known_args.seedFile, seed_file)
+                seeds += [
+                    get_cleaned_url(url) for url in seed_file.read_text().splitlines()
+                ]
+        else:
+            seeds += [
+                get_cleaned_url(url)
+                for url in Path(known_args.seedFile).read_text().splitlines()
+            ]
+    warc2zim_args.append("--url")
+    warc2zim_args.append(seeds[0])
 
-    if zimit_args.custom_css:
-        warc2zim_args += ["--custom-css", zimit_args.custom_css]
+    if known_args.custom_css:
+        warc2zim_args += ["--custom-css", known_args.custom_css]
 
-    if zimit_args.title:
+    if known_args.title:
         warc2zim_args.append("--title")
-        warc2zim_args.append(zimit_args.title)
+        warc2zim_args.append(known_args.title)
 
-    if zimit_args.description:
+    if known_args.description:
         warc2zim_args.append("--description")
-        warc2zim_args.append(zimit_args.description)
+        warc2zim_args.append(known_args.description)
 
-    if zimit_args.long_description:
+    if known_args.long_description:
         warc2zim_args.append("--long-description")
-        warc2zim_args.append(zimit_args.long_description)
+        warc2zim_args.append(known_args.long_description)
 
-    if zimit_args.zim_lang:
+    if known_args.zim_lang:
         warc2zim_args.append("--lang")
-        warc2zim_args.append(zimit_args.zim_lang)
+        warc2zim_args.append(known_args.zim_lang)
 
     logger.info("----------")
     logger.info("Testing warc2zim args")
@@ -449,23 +854,16 @@ def run(raw_args):
         logger.info("Exiting, invalid warc2zim params")
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
-    # make temp dir for this crawl
-    global temp_root_dir  # noqa: PLW0603
-    if zimit_args.build:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.build, prefix=".tmp"))
-    else:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=zimit_args.output, prefix=".tmp"))
-
-    if not zimit_args.keep:
+    if not known_args.keep:
         atexit.register(cleanup)
 
     # copy / download custom behaviors to one single folder and configure crawler
-    if zimit_args.custom_behaviors:
+    if known_args.custom_behaviors:
         behaviors_dir = temp_root_dir / "custom-behaviors"
         behaviors_dir.mkdir()
         for custom_behavior in [
             custom_behavior.strip()
-            for custom_behavior in zimit_args.custom_behaviors.split(",")
+            for custom_behavior in known_args.custom_behaviors.split(",")
         ]:
             behaviors_file = tempfile.NamedTemporaryFile(
                 dir=behaviors_dir,
@@ -485,47 +883,90 @@ def run(raw_args):
                     f"to {behaviors_file.name}"
                 )
                 shutil.copy(custom_behavior, behaviors_file.name)
-        zimit_args.customBehaviors = str(behaviors_dir)
+        known_args.customBehaviors = str(behaviors_dir)
     else:
-        zimit_args.customBehaviors = None
+        known_args.customBehaviors = None
 
-    cmd_args = get_node_cmd_line(zimit_args)
-    if url:
-        cmd_args.append("--url")
-        cmd_args.append(url)
+    crawler_args = get_crawler_cmd_line(known_args)
+    for seed in seeds:
+        crawler_args.append("--seeds")
+        crawler_args.append(seed)
 
-    cmd_args.append("--userAgentSuffix")
-    cmd_args.append(user_agent_suffix)
+    crawler_args.append("--userAgentSuffix")
+    crawler_args.append(user_agent_suffix)
 
-    if not zimit_args.noMobileDevice:
-        cmd_args.append("--mobileDevice")
-        cmd_args.append(zimit_args.mobileDevice)
+    crawler_args.append("--cwd")
+    crawler_args.append(str(temp_root_dir))
 
-    cmd_args.append("--cwd")
-    cmd_args.append(str(temp_root_dir))
+    output_dir = Path(known_args.output)
+    warc2zim_stats_file = (
+        Path(known_args.warc2zim_progress_file)
+        if known_args.warc2zim_progress_file
+        else temp_root_dir / "warc2zim.json"
+    )
+    if not warc2zim_stats_file.is_absolute():
+        warc2zim_stats_file = output_dir / warc2zim_stats_file
+        warc2zim_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    warc2zim_stats_file.unlink(missing_ok=True)
 
-    # setup inotify crawler progress watcher
-    if zimit_args.statsFilename:
+    crawler_stats_file = (
+        Path(known_args.statsFilename)
+        if known_args.statsFilename
+        else temp_root_dir / "crawl.json"
+    )
+    if not crawler_stats_file.is_absolute():
+        crawler_stats_file = output_dir / crawler_stats_file
+        crawler_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    crawler_stats_file.unlink(missing_ok=True)
+
+    zimit_stats_file = (
+        Path(known_args.zimit_progress_file)
+        if known_args.zimit_progress_file
+        else temp_root_dir / "stats.json"
+    )
+    if not zimit_stats_file.is_absolute():
+        zimit_stats_file = output_dir / zimit_stats_file
+        zimit_stats_file.parent.mkdir(parents=True, exist_ok=True)
+    zimit_stats_file.unlink(missing_ok=True)
+
+    if known_args.zimit_progress_file:
+        # setup inotify crawler progress watcher
         watcher = ProgressFileWatcher(
-            Path(zimit_args.output), Path(zimit_args.statsFilename)
+            zimit_stats_path=zimit_stats_file,
+            crawl_stats_path=crawler_stats_file,
+            warc2zim_stats_path=warc2zim_stats_file,
         )
-        logger.info(f"Writing progress to {watcher.stats_path}")
+        logger.info(
+            f"Writing zimit progress to {watcher.zimit_stats_path}, crawler progress to"
+            f" {watcher.crawl_stats_path} and warc2zim progress to "
+            f"{watcher.warc2zim_stats_path}"
+        )
         # update crawler command
-        cmd_args.append("--statsFilename")
-        cmd_args.append(str(watcher.crawl_path))
+        crawler_args.append("--statsFilename")
+        crawler_args.append(str(crawler_stats_file))
         # update warc2zim command
         warc2zim_args.append("-v")
         warc2zim_args.append("--progress-file")
-        warc2zim_args.append(str(watcher.warc2zim_path))
+        warc2zim_args.append(str(warc2zim_stats_file))
         watcher.watch()
+    else:
+        if known_args.statsFilename:
+            logger.info(f"Writing crawler progress to {crawler_stats_file}")
+            crawler_args.append("--statsFilename")
+            crawler_args.append(str(crawler_stats_file))
+        if known_args.warc2zim_progress_file:
+            logger.info(f"Writing warc2zim progress to {warc2zim_stats_file}")
+            warc2zim_args.append("-v")
+            warc2zim_args.append("--progress-file")
+            warc2zim_args.append(str(warc2zim_stats_file))
 
-    cmd_line = " ".join(cmd_args)
+    cmd_line = " ".join(crawler_args)
 
     logger.info("")
     logger.info("----------")
     logger.info(
         f"Output to tempdir: {temp_root_dir} - "
-        f"{'will keep' if zimit_args.keep else 'will delete'}"
+        f"{'will keep' if known_args.keep else 'will delete'}"
     )
 
     partial_zim = False
@@ -533,9 +974,9 @@ def run(raw_args):
     # if warc files are passed, do not run browsertrix crawler but fetch the files if
     # they are provided as an HTTP URL + extract the archive if it is a tar.gz
     warc_files: list[Path] = []
-    if zimit_args.warcs:
+    if known_args.warcs:
         for warc_location in [
-            warc_location.strip() for warc_location in zimit_args.warcs.split(",")
+            warc_location.strip() for warc_location in known_args.warcs.split(",")
         ]:
             suffix = "".join(Path(urllib.parse.urlparse(warc_location).path).suffixes)
             if suffix not in {".tar", ".tar.gz", ".warc", ".warc.gz"}:
@@ -593,24 +1034,24 @@ def run(raw_args):
     else:
 
         logger.info(f"Running browsertrix-crawler crawl: {cmd_line}")
-        crawl = subprocess.run(cmd_args, check=False)
+        crawl = subprocess.run(crawler_args, check=False)
         if (
             crawl.returncode == EXIT_CODE_CRAWLER_SIZE_LIMIT_HIT
-            and zimit_args.sizeSoftLimit
+            and known_args.sizeSoftLimit
         ):
             logger.info(
                 "Crawl size soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.statsFilename:
+            if known_args.zimit_progress_file:
                 partial_zim = True
         elif (
             crawl.returncode == EXIT_CODE_CRAWLER_TIME_LIMIT_HIT
-            and zimit_args.timeSoftLimit
+            and known_args.timeSoftLimit
         ):
             logger.info(
                 "Crawl time soft limit hit. Continuing with warc2zim conversion."
             )
-            if zimit_args.statsFilename:
+            if known_args.zimit_progress_file:
                 partial_zim = True
         elif crawl.returncode != 0:
             logger.error(
@@ -619,9 +1060,9 @@ def run(raw_args):
             cancel_cleanup()
             return crawl.returncode
 
-        if zimit_args.collection:
+        if known_args.collection:
             warc_files = [
-                temp_root_dir.joinpath(f"collections/{zimit_args.collection}/archive/")
+                temp_root_dir.joinpath(f"collections/{known_args.collection}/archive/")
             ]
 
         else:
@@ -654,15 +1095,14 @@ def run(raw_args):
 
     warc2zim_exit_code = warc2zim(warc2zim_args)
 
-    if zimit_args.statsFilename:
-        stats = Path(zimit_args.statsFilename)
-        stats_content = json.loads(stats.read_bytes())
+    if known_args.zimit_progress_file:
+        stats_content = json.loads(zimit_stats_file.read_bytes())
         stats_content["partialZim"] = partial_zim
-        stats.write_text(json.dumps(stats_content))
+        zimit_stats_file.write_text(json.dumps(stats_content))
 
     # also call cancel_cleanup when --keep, even if it is not supposed to be registered,
     # so that we will display temporary files location just like in other situations
-    if warc2zim_exit_code or zimit_args.keep:
+    if warc2zim_exit_code or known_args.keep:
         cancel_cleanup()
 
     return warc2zim_exit_code
@@ -680,31 +1120,63 @@ def get_cleaned_url(url: str):
     return parsed_url.geturl()
 
 
-def get_node_cmd_line(args):
-    node_cmd = ["crawl", "--failOnFailedSeed"]
+def get_crawler_cmd_line(args):
+    """Build the command line for Browsertrix crawler"""
+    node_cmd = ["crawl"]
     for arg in [
-        "workers",
-        "waitUntil",
-        "urlFile",
         "title",
         "description",
+        "workers",
+        "crawlId",
+        "waitUntil",
         "depth",
         "extraHops",
-        "limit",
+        "pageLimit",
         "maxPageLimit",
-        "timeout",
+        "pageLoadTimeout",
         "scopeType",
-        "include",
-        "exclude",
+        "scopeIncludeRx",
+        "scopeExcludeRx",
         "collection",
         "allowHashUrls",
-        "lang",
+        "selectLinks",
+        "clickSelector",
+        "blockRules",
+        "blockMessage",
+        "blockAds",
+        "adBlockMessage",
+        "collection",
+        "headless",
+        "driver",
+        "generateCDX",
+        "combineWARC",
+        "rolloverSize",
+        "generateWACZ",
+        "logging",
+        "logLevel",
+        "logContext",
+        "logExcludeContext",
+        "text",
+        "mobileDevice",
         "userAgent",
+        # userAgentSuffix (manipulated),
         "useSitemap",
+        "sitemapFromDate",
+        "sitemapToDate",
+        # statsFilename (manipulated),
         "behaviors",
         "behaviorTimeout",
-        "delay",
+        "postLoadDelay",
+        "pageExtraDelay",
+        "dedupPolicy",
         "profile",
+        "screenshot",
+        "screencastPort",
+        "screencastRedis",
+        "warcInfo",
+        "saveState",
+        "saveStateInterval",
+        "saveStateHistory",
         "sizeSoftLimit",
         "sizeHardLimit",
         "diskUtilization",
@@ -712,9 +1184,28 @@ def get_node_cmd_line(args):
         "timeHardLimit",
         "healthCheckPort",
         "overwrite",
-        "config",
-        "logging",
+        "waitOnDone",
+        "restartsOnError",
+        "netIdleWait",
+        "lang",
+        "originOverride",
+        "logErrorsToRedis",
+        "writePagesToRedis",
+        "maxPageRetries",
+        "failOnFailedSeed",
+        "failOnFailedLimit",
+        "failOnInvalidStatus",
+        "debugAccessBrowser",
+        "warcPrefix",
+        "serviceWorker",
+        "proxyServer",
+        "dryRun",
+        "qaSource",
+        "qaDebugImageDiff",
+        "sshProxyPrivateKeyFile",
+        "sshProxyKnownHostsFile",
         "customBehaviors",
+        "config",
     ]:
         value = getattr(args, arg)
         if arg == "userAgent":

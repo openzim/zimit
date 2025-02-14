@@ -155,7 +155,7 @@ def run(raw_args):
     parser.add_argument(
         "--crawlId",
         help="A user provided ID for this crawl or crawl configuration (can also be "
-        "set via CRAWL_ID env var, defaults to hostname)",
+        "set via CRAWL_ID env var, defaults to machine hostname)",
     )
 
     parser.add_argument(
@@ -167,7 +167,7 @@ def run(raw_args):
 
     parser.add_argument(
         "--depth",
-        help="The depth of the crawl for all seeds. Default is -1.",
+        help="The depth of the crawl for all seeds. Default is -1 (infinite).",
         type=int,
     )
 
@@ -388,7 +388,8 @@ def run(raw_args):
         " record(s)",
     )
 
-    # cwd is not manipulable
+    # cwd is manipulated directly by zimit, based on --output / --build, we do not want
+    # to expose this setting
 
     parser.add_argument(
         "--mobileDevice",
@@ -689,7 +690,7 @@ def run(raw_args):
 
     parser.add_argument(
         "--qaSource",
-        help="Required for QA mode. Source (WACZ or multi WACZ) for QA",
+        help="Required for QA mode. Path to the source WACZ or multi WACZ file for QA",
     )
 
     parser.add_argument(

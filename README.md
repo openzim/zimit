@@ -48,7 +48,7 @@ The image accepts the following parameters, **as well as any of the [warc2zim](h
 - `--exclude <regex>` - skip URLs that match the regex from crawling. Can be specified multiple times. An example is `--exclude="(\?q=|signup-landing\?|\?cid=)"`, where URLs that contain either `?q=` or `signup-landing?` or `?cid=` will be excluded.
 - `--workers N` - number of crawl workers to be run in parallel
 - `--wait-until` - Puppeteer setting for how long to wait for page load. See [page.goto waitUntil options](https://github.com/puppeteer/puppeteer/blob/main/docs/api.md#pagegotourl-options). The default is `load`, but for static sites, `--wait-until domcontentloaded` may be used to speed up the crawl (to avoid waiting for ads to load for example).
-- `--keep` - if set, keep the WARC files in a temp directory inside the output directory
+- `--keep` - in case of failure, WARC files and other temporary files (which are stored as a subfolder of output directory) are always kept, otherwise they are automatically deleted. Use this flag to always keep WARC files, even in case of success.
 
 Example command:
 

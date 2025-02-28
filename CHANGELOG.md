@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade to browsertrix crawler 1.5.7 (#483)
+
 ## [3.0.2] - 2024-02-27
 
 ### Changed

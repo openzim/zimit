@@ -8,7 +8,7 @@ requires-python = ">=3.13,<3.14"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
 dependencies = [
-  "requests==2.32.3",
+  "requests==2.32.4",
   "inotify==0.2.10",
   "tld==0.13",
   "warc2zim @ git+https://github.com/openzim/warc2zim@main",

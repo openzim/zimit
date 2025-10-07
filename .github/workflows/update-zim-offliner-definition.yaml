@@ -1,0 +1,38 @@
+name: Update ZIMFarm Definitions
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "offliner-definition.json"
+  release:
+    types: [published]
+
+jobs:
+  prepare-json:
+    runs-on: ubuntu-24.04
+    outputs:
+      offliner_definition: ${{ steps.read-json.outputs.offliner_definition }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: read-json
+        run: |
+          if [ ! -f "offliner-definition.json" ]; then
+            echo "File not found!" >&2
+            exit 1
+          fi
+          json=$(jq -c . offliner-definition.json)
+          echo "offliner_definition=$json" >> $GITHUB_OUTPUT
+  call-workflow:
+    needs: prepare-json
+    uses: openzim/overview/.github/workflows/update-zimfarm-offliner-definition.yaml@main
+    with:
+      version: ${{ github.event_name == 'release' && github.event.release.tag_name || 'dev' }}
+      offliner: zimit
+      offliner_definition: ${{ needs.prepare-json.outputs.offliner_definition }}
+    secrets:
+      zimfarm_ci_secret: ${{ secrets.ZIMFARM_CI_SECRET }}

@@ -1,0 +1,973 @@
+{
+  "offliner_id": "zimit",
+  "stdOutput": true,
+  "stdStats": "zimit-progress-file",
+  "flags": {
+    "seeds": {
+      "type": "string",
+      "required": false,
+      "title": "Seeds",
+      "description": "The seed URL(s) to start crawling from. Multile seed URL must be separated by a comma (usually not needed, these are just the crawl seeds). First seed URL is used as ZIM homepage"
+    },
+    "seed_file": {
+      "type": "string",
+      "required": false,
+      "title": "Seed File",
+      "description": "If set, read a list of seed urls, one per line. HTTPS URL to an online file."
+    },
+    "lang": {
+      "type": "string",
+      "required": false,
+      "title": "Browser Language",
+      "description": "If set, sets the language used by the browser, should be ISO 639 language[-country] code, e.g. `en` or `en-GB`"
+    },
+    "title": {
+      "type": "string",
+      "required": false,
+      "title": "Title",
+      "description": "Custom title for your ZIM. Defaults to title of main page",
+      "minLength": 1,
+      "maxLength": 30
+    },
+    "description": {
+      "type": "string",
+      "required": false,
+      "title": "Description",
+      "description": "Description for ZIM",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "favicon": {
+      "type": "url",
+      "required": false,
+      "title": "Illustration",
+      "description": "URL for Illustration. "
+    },
+    "tags": {
+      "type": "string",
+      "required": false,
+      "title": "ZIM Tags",
+      "description": "Single string with individual tags separated by a semicolon."
+    },
+    "creator": {
+      "type": "string",
+      "required": false,
+      "title": "Creator",
+      "description": "Name of content creator"
+    },
+    "publisher": {
+      "type": "string",
+      "required": false,
+      "title": "Publisher",
+      "isPublisher": true,
+      "description": "Custom publisher name (ZIM metadata). openZIM otherwise"
+    },
+    "source": {
+      "type": "string",
+      "required": false,
+      "title": "Source",
+      "description": "Source name/URL of content"
+    },
+    "workers": {
+      "type": "integer",
+      "required": false,
+      "title": "Workers",
+      "description": "The number of workers to run in parallel. Defaults to 1",
+      "min": 1
+    },
+    "wait_until": {
+      "type": "string",
+      "required": false,
+      "title": "WaitUntil",
+      "description": "Puppeteer page.goto() condition to wait for before continuing. One of load, domcontentloaded, networkidle0 or networkidle2, or a comma-separated combination of those. Default is load,networkidle2"
+    },
+    "extra_hops": {
+      "type": "integer",
+      "required": false,
+      "title": "Extra Hops",
+      "description": "Number of extra 'hops' to follow, beyond the current scope. Default is 0",
+      "min": 0
+    },
+    "page_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Page Limit",
+      "description": "Limit crawl to this number of pages. Default is 0 (no-limit).",
+      "min": 0
+    },
+    "max_page_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Max Page Limit",
+      "description": "Maximum pages to crawl, overriding pageLimit if both are set. Default is 0 (no-limit)",
+      "min": 0
+    },
+    "page_load_timeout": {
+      "type": "integer",
+      "required": false,
+      "title": "Page Load Timeout",
+      "description": "Timeout for each page to load (in seconds). Default is 90",
+      "min": 0
+    },
+    "scope_type": {
+      "type": "string-enum",
+      "required": false,
+      "title": "Scope Type",
+      "description": "A predfined scope of the crawl. For more customization, use 'custom' and set scopeIncludeRx/scopeExcludeRx regexes. Default is custom if scopeIncludeRx is set, prefix otherwise.",
+      "choices": [
+        {
+          "title": "Page",
+          "value": "page"
+        },
+        {
+          "title": "Page SPA",
+          "value": "page-spa"
+        },
+        {
+          "title": "Prefix",
+          "value": "prefix"
+        },
+        {
+          "title": "Host",
+          "value": "host"
+        },
+        {
+          "title": "Domain",
+          "value": "domain"
+        },
+        {
+          "title": "Any",
+          "value": "any"
+        },
+        {
+          "title": "Custom",
+          "value": "custom"
+        }
+      ]
+    },
+    "scope_include_rx": {
+      "type": "string",
+      "required": false,
+      "title": "Scope Include Regex",
+      "description": "Regex of page URLs that should be included in the crawl (defaults to the immediate directory of seed)"
+    },
+    "scope_exclude_rx": {
+      "type": "string",
+      "required": false,
+      "title": "Scope Exclude Regex",
+      "description": "Regex of page URLs that should be excluded from the crawl"
+    },
+    "allow_hash_urls": {
+      "type": "boolean",
+      "required": false,
+      "title": "Allow Hashtag URLs",
+      "description": "Allow Hashtag URLs, useful for single-page-application crawling or when different hashtags load dynamic content"
+    },
+    "mobile_device": {
+      "type": "string-enum",
+      "required": false,
+      "title": "As device",
+      "description": "Device to crawl as. See Pupeeter's Device.ts for a list",
+      "choices": [
+        {
+          "title": "Blackberry Playbook",
+          "value": "Blackberry PlayBook"
+        },
+        {
+          "title": "Blackberry Playbook Landscape",
+          "value": "Blackberry PlayBook landscape"
+        },
+        {
+          "title": "Blackberry Z30",
+          "value": "BlackBerry Z30"
+        },
+        {
+          "title": "Blackberry Z30 Landscape",
+          "value": "BlackBerry Z30 landscape"
+        },
+        {
+          "title": "Galaxy Note 3",
+          "value": "Galaxy Note 3"
+        },
+        {
+          "title": "Galaxy Note 3 Landscape",
+          "value": "Galaxy Note 3 landscape"
+        },
+        {
+          "title": "Galaxy Note II",
+          "value": "Galaxy Note II"
+        },
+        {
+          "title": "Galaxy Note II Landscape",
+          "value": "Galaxy Note II landscape"
+        },
+        {
+          "title": "Galaxy S III",
+          "value": "Galaxy S III"
+        },
+        {
+          "title": "Galaxy S III Landscape",
+          "value": "Galaxy S III landscape"
+        },
+        {
+          "title": "Galaxy S5",
+          "value": "Galaxy S5"
+        },
+        {
+          "title": "Galaxy S5 Landscape",
+          "value": "Galaxy S5 landscape"
+        },
+        {
+          "title": "Galaxy S8",
+          "value": "Galaxy S8"
+        },
+        {
+          "title": "Galaxy S8 Landscape",
+          "value": "Galaxy S8 landscape"
+        },
+        {
+          "title": "Galaxy S9 Plus",
+          "value": "Galaxy S9+"
+        },
+        {
+          "title": "Galaxy S9 Plus Landscape",
+          "value": "Galaxy S9+ landscape"
+        },
+        {
+          "title": "Galaxy Tab S4",
+          "value": "Galaxy Tab S4"
+        },
+        {
+          "title": "Galaxy Tab S4 Landscape",
+          "value": "Galaxy Tab S4 landscape"
+        },
+        {
+          "title": "iPad",
+          "value": "iPad"
+        },
+        {
+          "title": "iPad Landscape",
+          "value": "iPad landscape"
+        },
+        {
+          "title": "iPad Gen 6",
+          "value": "iPad (gen 6)"
+        },
+        {
+          "title": "iPad Gen 6 Landscape",
+          "value": "iPad (gen 6) landscape"
+        },
+        {
+          "title": "iPad Gen 7",
+          "value": "iPad (gen 7)"
+        },
+        {
+          "title": "iPad Gen 7 Landscape",
+          "value": "iPad (gen 7) landscape"
+        },
+        {
+          "title": "iPad Mini",
+          "value": "iPad Mini"
+        },
+        {
+          "title": "iPad Mini Landscape",
+          "value": "iPad Mini landscape"
+        },
+        {
+          "title": "iPad Pro",
+          "value": "iPad Pro"
+        },
+        {
+          "title": "iPad Pro Landscape",
+          "value": "iPad Pro landscape"
+        },
+        {
+          "title": "iPad Pro 11",
+          "value": "iPad Pro 11"
+        },
+        {
+          "title": "iPad Pro 11 Landscape",
+          "value": "iPad Pro 11 landscape"
+        },
+        {
+          "title": "iPhone 4",
+          "value": "iPhone 4"
+        },
+        {
+          "title": "iPhone 4 Landscape",
+          "value": "iPhone 4 landscape"
+        },
+        {
+          "title": "iPhone 5",
+          "value": "iPhone 5"
+        },
+        {
+          "title": "iPhone 5 Landscape",
+          "value": "iPhone 5 landscape"
+        },
+        {
+          "title": "iPhone 6",
+          "value": "iPhone 6"
+        },
+        {
+          "title": "iPhone 6 Landscape",
+          "value": "iPhone 6 landscape"
+        },
+        {
+          "title": "iPhone 6 Plus",
+          "value": "iPhone 6 Plus"
+        },
+        {
+          "title": "iPhone 6 Plus Landscape",
+          "value": "iPhone 6 Plus landscape"
+        },
+        {
+          "title": "iPhone 7",
+          "value": "iPhone 7"
+        },
+        {
+          "title": "iPhone 7 Landscape",
+          "value": "iPhone 7 landscape"
+        },
+        {
+          "title": "iPhone 7 Plus",
+          "value": "iPhone 7 Plus"
+        },
+        {
+          "title": "iPhone 7 Plus Landscape",
+          "value": "iPhone 7 Plus landscape"
+        },
+        {
+          "title": "iPhone 8",
+          "value": "iPhone 8"
+        },
+        {
+          "title": "iPhone 8 Landscape",
+          "value": "iPhone 8 landscape"
+        },
+        {
+          "title": "iPhone 8 Plus",
+          "value": "iPhone 8 Plus"
+        },
+        {
+          "title": "iPhone 8 Plus Landscape",
+          "value": "iPhone 8 Plus landscape"
+        },
+        {
+          "title": "iPhone SE",
+          "value": "iPhone SE"
+        },
+        {
+          "title": "iPhone SE Landscape",
+          "value": "iPhone SE landscape"
+        },
+        {
+          "title": "iPhone X",
+          "value": "iPhone X"
+        },
+        {
+          "title": "iPhone X Landscape",
+          "value": "iPhone X landscape"
+        },
+        {
+          "title": "iPhone XR",
+          "value": "iPhone XR"
+        },
+        {
+          "title": "iPhone XR Landscape",
+          "value": "iPhone XR landscape"
+        },
+        {
+          "title": "iPhone 11",
+          "value": "iPhone 11"
+        },
+        {
+          "title": "iPhone 11 Landscape",
+          "value": "iPhone 11 landscape"
+        },
+        {
+          "title": "iPhone 11 Pro",
+          "value": "iPhone 11 Pro"
+        },
+        {
+          "title": "iPhone 11 Pro Landscape",
+          "value": "iPhone 11 Pro landscape"
+        },
+        {
+          "title": "iPhone 11 Pro Max",
+          "value": "iPhone 11 Pro Max"
+        },
+        {
+          "title": "iPhone 11 Pro Max Landscape",
+          "value": "iPhone 11 Pro Max landscape"
+        },
+        {
+          "title": "iPhone 12",
+          "value": "iPhone 12"
+        },
+        {
+          "title": "iPhone 12 Landscape",
+          "value": "iPhone 12 landscape"
+        },
+        {
+          "title": "iPhone 12 Pro",
+          "value": "iPhone 12 Pro"
+        },
+        {
+          "title": "iPhone 12 Pro Landscape",
+          "value": "iPhone 12 Pro landscape"
+        },
+        {
+          "title": "iPhone 12 Pro Max",
+          "value": "iPhone 12 Pro Max"
+        },
+        {
+          "title": "iPhone 12 Pro Max Landscape",
+          "value": "iPhone 12 Pro Max landscape"
+        },
+        {
+          "title": "iPhone 12 Mini",
+          "value": "iPhone 12 Mini"
+        },
+        {
+          "title": "iPhone 12 Mini Landscape",
+          "value": "iPhone 12 Mini landscape"
+        },
+        {
+          "title": "iPhone 13",
+          "value": "iPhone 13"
+        },
+        {
+          "title": "iPhone 13 Landscape",
+          "value": "iPhone 13 landscape"
+        },
+        {
+          "title": "iPhone 13 Pro",
+          "value": "iPhone 13 Pro"
+        },
+        {
+          "title": "iPhone 13 Pro Landscape",
+          "value": "iPhone 13 Pro landscape"
+        },
+        {
+          "title": "iPhone 13 Pro Max",
+          "value": "iPhone 13 Pro Max"
+        },
+        {
+          "title": "iPhone 13 Pro Max Landscape",
+          "value": "iPhone 13 Pro Max landscape"
+        },
+        {
+          "title": "iPhone 13 Mini",
+          "value": "iPhone 13 Mini"
+        },
+        {
+          "title": "iPhone 13 Mini Landscape",
+          "value": "iPhone 13 Mini landscape"
+        },
+        {
+          "title": "Jio Phone 2",
+          "value": "JioPhone 2"
+        },
+        {
+          "title": "Jio Phone 2 Landscape",
+          "value": "JioPhone 2 landscape"
+        },
+        {
+          "title": "Kindle Fire HDX",
+          "value": "Kindle Fire HDX"
+        },
+        {
+          "title": "Kindle Fire HDX Landscape",
+          "value": "Kindle Fire HDX landscape"
+        },
+        {
+          "title": "LG Optimus L70",
+          "value": "LG Optimus L70"
+        },
+        {
+          "title": "LG Optimus L70 Landscape",
+          "value": "LG Optimus L70 landscape"
+        },
+        {
+          "title": "Microsoft Lumia 550",
+          "value": "Microsoft Lumia 550"
+        },
+        {
+          "title": "Microsoft Lumia 950",
+          "value": "Microsoft Lumia 950"
+        },
+        {
+          "title": "Microsoft Lumia 950 Landscape",
+          "value": "Microsoft Lumia 950 landscape"
+        },
+        {
+          "title": "Nexus 10",
+          "value": "Nexus 10"
+        },
+        {
+          "title": "Nexus 10 Landscape",
+          "value": "Nexus 10 landscape"
+        },
+        {
+          "title": "Nexus 4",
+          "value": "Nexus 4"
+        },
+        {
+          "title": "Nexus 4 Landscape",
+          "value": "Nexus 4 landscape"
+        },
+        {
+          "title": "Nexus 5",
+          "value": "Nexus 5"
+        },
+        {
+          "title": "Nexus 5 Landscape",
+          "value": "Nexus 5 landscape"
+        },
+        {
+          "title": "Nexus 5X",
+          "value": "Nexus 5X"
+        },
+        {
+          "title": "Nexus 5X Landscape",
+          "value": "Nexus 5X landscape"
+        },
+        {
+          "title": "Nexus 6",
+          "value": "Nexus 6"
+        },
+        {
+          "title": "Nexus 6 Landscape",
+          "value": "Nexus 6 landscape"
+        },
+        {
+          "title": "Nexus 6P",
+          "value": "Nexus 6P"
+        },
+        {
+          "title": "Nexus 6P Landscape",
+          "value": "Nexus 6P landscape"
+        },
+        {
+          "title": "Nexus 7",
+          "value": "Nexus 7"
+        },
+        {
+          "title": "Nexus 7 Landscape",
+          "value": "Nexus 7 landscape"
+        },
+        {
+          "title": "Nokia Lumia 520",
+          "value": "Nokia Lumia 520"
+        },
+        {
+          "title": "Nokia Lumia 520 Landscape",
+          "value": "Nokia Lumia 520 landscape"
+        },
+        {
+          "title": "Nokia N9",
+          "value": "Nokia N9"
+        },
+        {
+          "title": "Nokia N9 Landscape",
+          "value": "Nokia N9 landscape"
+        },
+        {
+          "title": "Pixel 2",
+          "value": "Pixel 2"
+        },
+        {
+          "title": "Pixel 2 Landscape",
+          "value": "Pixel 2 landscape"
+        },
+        {
+          "title": "Pixel 2 XL",
+          "value": "Pixel 2 XL"
+        },
+        {
+          "title": "Pixel 2 XL Landscape",
+          "value": "Pixel 2 XL landscape"
+        },
+        {
+          "title": "Pixel 3",
+          "value": "Pixel 3"
+        },
+        {
+          "title": "Pixel 3 Landscape",
+          "value": "Pixel 3 landscape"
+        },
+        {
+          "title": "Pixel 4",
+          "value": "Pixel 4"
+        },
+        {
+          "title": "Pixel 4 Landscape",
+          "value": "Pixel 4 landscape"
+        },
+        {
+          "title": "Pixel 4A 5G",
+          "value": "Pixel 4a (5G)"
+        },
+        {
+          "title": "Pixel 4A 5G Landscape",
+          "value": "Pixel 4a (5G) landscape"
+        },
+        {
+          "title": "Pixel 5",
+          "value": "Pixel 5"
+        },
+        {
+          "title": "Pixel 5 Landscape",
+          "value": "Pixel 5 landscape"
+        },
+        {
+          "title": "Moto G4",
+          "value": "Moto G4"
+        },
+        {
+          "title": "Moto G4 Landscape",
+          "value": "Moto G4 landscape"
+        }
+      ]
+    },
+    "select_links": {
+      "type": "string",
+      "required": false,
+      "title": "Select Links",
+      "description": "One or more selectors for extracting links, in the format [css selector]->[property to use],[css selector]->@[attribute to use]"
+    },
+    "click_selector": {
+      "type": "string",
+      "required": false,
+      "title": "Click Selector",
+      "description": "Selector for elements to click when using the autoclick behavior. Default is 'a'"
+    },
+    "block_rules": {
+      "type": "string",
+      "required": false,
+      "title": "Block Rules",
+      "description": "Additional rules for blocking certain URLs from being loaded, by URL regex and optionally via text match in an iframe"
+    },
+    "block_message": {
+      "type": "string",
+      "required": false,
+      "title": "Block Message",
+      "description": "If specified, when a URL is blocked, a record with this error message is added instead"
+    },
+    "block_ads": {
+      "type": "boolean",
+      "required": false,
+      "title": "Block Ads",
+      "description": "If set, block advertisements from being loaded (based on Stephen Black's blocklist). Note that some bad domains are also blocked by zimit configuration even if this option is not set."
+    },
+    "ad_block_message": {
+      "type": "string",
+      "required": false,
+      "title": "Ads Block Message",
+      "description": "If specified, when an ad is blocked, a record with this error message is added instead"
+    },
+    "user_agent": {
+      "type": "string",
+      "required": false,
+      "title": "User Agent",
+      "description": "Override user-agent with specified"
+    },
+    "user_agent_suffix": {
+      "type": "string",
+      "required": false,
+      "title": "User Agent Suffix",
+      "description": "Append suffix to existing browser user-agent. Defaults to +Zimit"
+    },
+    "use_sitemap": {
+      "type": "string",
+      "required": false,
+      "title": "Sitemap URL",
+      "description": "Use as sitemap to get additional URLs for the crawl (usually at /sitemap.xml)"
+    },
+    "sitemap_from_date": {
+      "type": "string",
+      "required": false,
+      "title": "Sitemap From Date",
+      "description": "If set, filter URLs from sitemaps to those greater than or equal to (>=) provided ISO Date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS or partial date)"
+    },
+    "sitemap_to_date": {
+      "type": "string",
+      "required": false,
+      "title": "Sitemap To Date",
+      "description": "If set, filter URLs from sitemaps to those less than or equal to (<=) provided ISO Date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS or partial date)"
+    },
+    "behavior_timeout": {
+      "type": "integer",
+      "required": false,
+      "title": "Behavior Timeout",
+      "description": "If >0, timeout (in seconds) for in-page behavior will run on each page. If 0, a behavior can run until finish. Default is 90.",
+      "min": 0
+    },
+    "post_load_delay": {
+      "type": "integer",
+      "required": false,
+      "title": "Post Load Delay",
+      "description": "If >0, amount of time to sleep (in seconds) after page has loaded, before taking screenshots / getting text / running behaviors. Default is 0.",
+      "min": 0
+    },
+    "page_extra_delay": {
+      "type": "integer",
+      "required": false,
+      "title": "Page Extra Delay",
+      "description": "If >0, amount of time to sleep (in seconds) after behaviors before moving on to next page. Default is 0.",
+      "min": 0
+    },
+    "dedup_policy": {
+      "type": "string-enum",
+      "required": false,
+      "title": "Dedup Policy",
+      "description": "Deduplication policy. One of skip, revisit or keep. Default is skip",
+      "choices": [
+        {
+          "title": "Skip",
+          "value": "skip"
+        },
+        {
+          "title": "Revisit",
+          "value": "revisit"
+        },
+        {
+          "title": "Keep",
+          "value": "keep"
+        }
+      ]
+    },
+    "screenshot": {
+      "type": "string",
+      "required": false,
+      "title": "Screenshot",
+      "description": "Screenshot options for crawler. One of view, thumbnail, fullPage, fullPageFinal or a comma-separated combination of those."
+    },
+    "size_soft_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Size Soft Limit",
+      "description": "If set, save crawl state and stop crawl if WARC size exceeds this value. ZIM will still be created.",
+      "min": 0
+    },
+    "size_hard_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Size Hard Limit",
+      "description": "If set, exit crawler and fail the scraper immediately if WARC size exceeds this value",
+      "min": 0
+    },
+    "disk_utilization": {
+      "type": "integer",
+      "required": false,
+      "title": "Disk Utilization",
+      "description": "Save state and exit if disk utilization exceeds this percentage value. Default (if not set) is 90%. Set to 0 to disable disk utilization check.",
+      "min": 0
+    },
+    "time_soft_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Time Soft Limit",
+      "description": "If set, save crawl state and stop crawl if WARC(s) creation takes longer than this value, in seconds. ZIM will still be created.",
+      "min": 0
+    },
+    "time_hard_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Time Hard Limit",
+      "description": "If set, exit crawler and fail the scraper immediately if WARC(s) creation takes longer than this value, in seconds",
+      "min": 0
+    },
+    "net_idle_wait": {
+      "type": "integer",
+      "required": false,
+      "title": "Net Idle Wait",
+      "description": "If set, wait for network idle after page load and after behaviors are done (in seconds). If -1 (default), determine based on scope."
+    },
+    "origin_override": {
+      "type": "string",
+      "required": false,
+      "title": "Origin Override",
+      "description": "If set, will redirect requests from each origin in key to origin in the value, eg. https://host:port=http://alt-host:alt-port."
+    },
+    "max_page_retries": {
+      "type": "integer",
+      "required": false,
+      "title": "Max Page Retries",
+      "description": "If set, number of times to retry a page that failed to load before page is considered to have failed. Default is 2.",
+      "min": 0
+    },
+    "fail_on_failed_seed": {
+      "type": "boolean",
+      "required": false,
+      "title": "Fail on failed seed",
+      "description": "Whether to display additional logs"
+    },
+    "fail_on_invalid_status": {
+      "type": "boolean",
+      "required": false,
+      "title": "Fail on invalid status",
+      "description": "If set, will treat pages with 4xx or 5xx response as failures. When combined with --failOnFailedLimit or --failOnFailedSeed may result in crawl failing due to non-200 responses"
+    },
+    "fail_on_failed_limit": {
+      "type": "integer",
+      "required": false,
+      "title": "Fail on failed - Limit",
+      "description": "If set, save state and exit if number of failed pages exceeds this value.",
+      "min": 0
+    },
+    "warcs": {
+      "type": "string",
+      "required": false,
+      "title": "WARC files",
+      "description": "Comma-separated list of WARC files to use as input."
+    },
+    "verbose": {
+      "type": "boolean",
+      "required": false,
+      "title": "Verbose mode",
+      "description": "Whether to display additional logs"
+    },
+    "keep": {
+      "type": "boolean",
+      "required": false,
+      "title": "Keep",
+      "description": "Should be True. Developer option: must be True if we want to keep the WARC files for artifacts archiving.",
+      "default": true
+    },
+    "output": {
+      "type": "string",
+      "required": false,
+      "title": "Output folder",
+      "description": "Output folder for ZIM file(s). Leave it as `/output`",
+      "pattern": "^/output$"
+    },
+    "admin_email": {
+      "type": "email",
+      "required": false,
+      "title": "Admin Email",
+      "description": "Admin Email for crawler: used in UserAgent so website admin can contact us",
+      "default": "contact+zimfarm@kiwix.org"
+    },
+    "profile": {
+      "type": "string",
+      "required": false,
+      "title": "Browser profile",
+      "description": "Path or HTTP(S) URL to tar.gz file which contains the browser profile directory for Browsertrix crawler."
+    },
+    "behaviors": {
+      "type": "string",
+      "required": false,
+      "title": "Behaviors",
+      "description": "Which background behaviors to enable on each page. Defaults to autoplay,autofetch,siteSpecific."
+    },
+    "depth": {
+      "type": "integer",
+      "required": false,
+      "title": "Depth",
+      "description": "The depth of the crawl for all seeds. Default is -1 (infinite).",
+      "min": -1
+    },
+    "zim_lang": {
+      "type": "string",
+      "required": false,
+      "title": "ZIM Language",
+      "description": "Language metadata of ZIM (warc2zim --lang param). ISO-639-3 code. Retrieved from homepage if found, fallback to `eng`",
+      "alias": "zim-lang",
+      "customValidator": "language_code"
+    },
+    "long_description": {
+      "type": "string",
+      "required": false,
+      "title": "Long description",
+      "description": "Optional long description for your ZIM",
+      "minLength": 1,
+      "maxLength": 4000,
+      "alias": "long-description"
+    },
+    "custom_css": {
+      "type": "url",
+      "required": false,
+      "title": "Custom CSS",
+      "description": "URL to a CSS file to inject into pages",
+      "alias": "custom-css"
+    },
+    "charsets_to_try": {
+      "type": "string",
+      "required": false,
+      "title": "Charsets to try",
+      "description": "List of charsets to try decode content when charset is not found",
+      "alias": "charsets-to-try"
+    },
+    "ignore_content_header_charsets": {
+      "type": "boolean",
+      "required": false,
+      "title": "Ignore Content Header Charsets",
+      "description": "Ignore the charsets specified in content headers - first bytes - typically because they are wrong.",
+      "alias": "ignore-content-header-charsets"
+    },
+    "content_header_bytes_length": {
+      "type": "integer",
+      "required": false,
+      "title": "Content Header Bytes Length",
+      "description": "How many bytes to consider when searching for content charsets in header (default is 1024).",
+      "alias": "content-header-bytes-length",
+      "min": 0
+    },
+    "ignore_http_header_charsets": {
+      "type": "boolean",
+      "required": false,
+      "title": "Ignore HTTP Header Charsets",
+      "description": "Ignore the charsets specified in HTTP `Content-Type` headers, typically because they are wrong.",
+      "alias": "ignore-http-header-charsets"
+    },
+    "encoding_aliases": {
+      "type": "string",
+      "required": false,
+      "title": "Encoding Aliases",
+      "description": "List of encoding/charset aliases to decode WARC content. Aliases are used when the encoding specified in upstream server exists in Python under a different name. This parameter is single string, multiple values are separated by a comma, like in alias1=encoding1,alias2=encoding2.",
+      "alias": "encoding-aliases"
+    },
+    "custom_behaviors": {
+      "type": "string",
+      "required": false,
+      "title": "Custom Behaviors",
+      "description": "JS code for custom behaviors to customize crawler. Single string with individual JS files URL/path separated by a comma.",
+      "alias": "custom-behaviours"
+    },
+    "zimit_progress_file": {
+      "type": "string",
+      "required": false,
+      "title": "Zimit Progress File",
+      "description": "Scraping progress file. Leave it as `/output/task_progress.json`",
+      "alias": "zimit-progress-file",
+      "pattern": "^/output/task_progress\\.json$"
+    },
+    "replay_viewer_source": {
+      "type": "url",
+      "required": false,
+      "title": "Replay Viewer Source",
+      "description": "URL from which to load the ReplayWeb.page replay viewer from",
+      "alias": "replay-viewer-source"
+    },
+    "zim_file": {
+      "type": "string",
+      "required": false,
+      "title": "ZIM filename",
+      "description": "ZIM file name (based on --name if not provided). Include {period} to insert date period dynamically",
+      "alias": "zim-file",
+      "pattern": "^([a-z0-9\\-\\.]+_)([a-z\\-]+_)([a-z0-9\\-\\.]+_)([a-z0-9\\-\\.]+_|)([\\d]{4}-[\\d]{2}|\\{period\\}).zim$",
+      "relaxedPattern": "^[A-Za-z0-9._-]+$"
+    },
+    "name": {
+      "type": "string",
+      "required": true,
+      "title": "ZIM name",
+      "description": "Name of the ZIM.",
+      "alias": "name",
+      "pattern": "^([a-z0-9\\-\\.]+_)([a-z\\-]+_)([a-z0-9\\-\\.]+)$",
+      "relaxedPattern": "^[A-Za-z0-9._-]+$"
+    }
+  }
+}

@@ -25,14 +25,14 @@ jobs:
             echo "File not found!" >&2
             exit 1
           fi
-          json=$(jq -c . offliner-definition.json)
-          echo "offliner_definition=$json" >> $GITHUB_OUTPUT
+          json_b64=$(base64 -w0 <<< "$(jq -c . offliner-definition.json)")
+          echo "offliner_definition_b64=$json_b64" >> $GITHUB_OUTPUT
   call-workflow:
     needs: prepare-json
     uses: openzim/overview/.github/workflows/update-zimfarm-offliner-definition.yaml@main
     with:
       version: ${{ github.event_name == 'release' && github.event.release.tag_name || 'dev' }}
       offliner: zimit
-      offliner_definition: ${{ needs.prepare-json.outputs.offliner_definition }}
+      offliner_definition_b64: ${{ needs.prepare-json.outputs.offliner_definition_b64 }}
     secrets:
       zimfarm_ci_secret: ${{ secrets.ZIMFARM_CI_SECRET }}

@@ -8,6 +8,13 @@ on:
   release:
     types: [published]
 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (leave blank to use 'dev')"
+        required: false
+        default: "dev"
+
 jobs:
   prepare-json:
     runs-on: ubuntu-24.04
@@ -31,7 +38,7 @@ jobs:
     needs: prepare-json
     uses: openzim/overview/.github/workflows/update-zimfarm-offliner-definition.yaml@main
     with:
-      version: ${{ github.event_name == 'release' && github.event.release.tag_name || 'dev' }}
+      version: ${{ github.event_name == 'release' && github.event.release.tag_name || (github.event.inputs.version || 'dev') }}
       offliner: zimit
       offliner_definition_b64: ${{ needs.prepare-json.outputs.offliner_definition_b64 }}
     secrets:

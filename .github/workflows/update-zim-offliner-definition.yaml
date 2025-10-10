@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to publish (leave blank to use 'dev')"
+        description: "Version to publish"
         required: false
         default: "dev"
 
@@ -19,7 +19,7 @@ jobs:
   prepare-json:
     runs-on: ubuntu-24.04
     outputs:
-      offliner_definition: ${{ steps.read-json.outputs.offliner_definition }}
+      offliner_definition_b64: ${{ steps.read-json.outputs.offliner_definition_b64 }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

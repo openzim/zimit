@@ -1,7 +1,7 @@
 Zimit
 =====
 
-Zimit is a scraper allowing to create ZIM file from any Web site.
+Zimit is a scraper allowing to create [ZIM file](https://en.wikipedia.org/wiki/ZIM_(file_format)) from any Web site.
 
 [![CodeFactor](https://www.codefactor.io/repository/github/openzim/zimit/badge)](https://www.codefactor.io/repository/github/openzim/zimit)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

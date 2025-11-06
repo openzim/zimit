@@ -796,11 +796,13 @@ def run(raw_args):
     if known_args.adminEmail:
         user_agent_suffix += f" {known_args.adminEmail}"
 
-    # make temp dir for this crawl
+    # set temp dir to use for this crawl
     global temp_root_dir  # noqa: PLW0603
     if known_args.build:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.build, prefix=".tmp"))
+        # use build dir argument if passed
+        temp_root_dir = Path(known_args.build)
     else:
+        # make new randomized temp dir
         temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.output, prefix=".tmp"))
 
     seeds = []

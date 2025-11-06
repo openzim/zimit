@@ -856,7 +856,8 @@ def run(raw_args):
         logger.info("Exiting, invalid warc2zim params")
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
-    if not known_args.keep:
+    # only trigger cleanup when the keep argument is passed without a custom build dir.
+    if not known_args.build and not known_args.keep:
         atexit.register(cleanup)
 
     # copy / download custom behaviors to one single folder and configure crawler

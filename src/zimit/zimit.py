@@ -801,6 +801,7 @@ def run(raw_args):
     if known_args.build:
         # use build dir argument if passed
         temp_root_dir = Path(known_args.build)
+        temp_root_dir.mkdir(parents=True, exist_ok=True)
     else:
         # make new randomized temp dir
         temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.output, prefix=".tmp"))

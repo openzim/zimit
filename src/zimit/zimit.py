@@ -1079,12 +1079,11 @@ def run(raw_args):
                 )
             elif len(warc_dirs) > 1:
                 logger.info(
-                    "Found many WARC files directories, only most recently modified one"
-                    " will be used"
+                    "Found many WARC files directories, combining pages from all of them"
                 )
                 for directory in warc_dirs:
                     logger.info(f"- {directory}")
-            warc_files = [warc_dirs[-1]]
+            warc_files = warc_dirs
 
     logger.info("")
     logger.info("----------")

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Fix issues preventing interrupted crawls from being resumed. (#499)
+  - Ensure build directory is used explicitly instead of a randomized subdirectory when passed, and pre-create it if it does not exist.
+  - Use all warc_dirs found instead of just the latest so interrupted crawls use all collected pages across runs when an explicit collections directory is not passed.
+  - Don't cleanup an explicitly passed build directory.
+
 ## [3.0.5] - 2024-04-11
 
 ### Changed

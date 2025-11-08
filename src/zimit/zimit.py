@@ -796,11 +796,14 @@ def run(raw_args):
     if known_args.adminEmail:
         user_agent_suffix += f" {known_args.adminEmail}"
 
-    # make temp dir for this crawl
+    # set temp dir to use for this crawl
     global temp_root_dir  # noqa: PLW0603
     if known_args.build:
-        temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.build, prefix=".tmp"))
+        # use build dir argument if passed
+        temp_root_dir = Path(known_args.build)
+        temp_root_dir.mkdir(parents=True, exist_ok=True)
     else:
+        # make new randomized temp dir
         temp_root_dir = Path(tempfile.mkdtemp(dir=known_args.output, prefix=".tmp"))
 
     seeds = []
@@ -854,7 +857,8 @@ def run(raw_args):
         logger.info("Exiting, invalid warc2zim params")
         return EXIT_CODE_WARC2ZIM_CHECK_FAILED
 
-    if not known_args.keep:
+    # only trigger cleanup when the keep argument is passed without a custom build dir.
+    if not known_args.build and not known_args.keep:
         atexit.register(cleanup)
 
     # copy / download custom behaviors to one single folder and configure crawler
@@ -1076,12 +1080,12 @@ def run(raw_args):
                 )
             elif len(warc_dirs) > 1:
                 logger.info(
-                    "Found many WARC files directories, only most recently modified one"
-                    " will be used"
+                    "Found many WARC files directories, combining pages from all "
+                    "of them"
                 )
                 for directory in warc_dirs:
                     logger.info(f"- {directory}")
-            warc_files = [warc_dirs[-1]]
+            warc_files = warc_dirs
 
     logger.info("")
     logger.info("----------")

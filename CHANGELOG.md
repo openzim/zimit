@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added `--overwrite` flag to overwrite existing ZIM file if it exists (#399)
+
 ### Changed
 - Fix issues preventing interrupted crawls from being resumed. (#499)
   - Ensure build directory is used explicitly instead of a randomized subdirectory when passed, and pre-create it if it does not exist.

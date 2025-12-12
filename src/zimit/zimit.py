@@ -849,6 +849,9 @@ def run(raw_args):
         warc2zim_args.append("--lang")
         warc2zim_args.append(known_args.zim_lang)
 
+    if known_args.overwrite:
+        warc2zim_args.append("--overwrite")
+
     logger.info("----------")
     logger.info("Testing warc2zim args")
     logger.info("Running: warc2zim " + " ".join(warc2zim_args))
@@ -1036,7 +1039,6 @@ def run(raw_args):
             warc_files.append(Path(extract_path))
 
     else:
-
         logger.info(f"Running browsertrix-crawler crawl: {cmd_line}")
         crawl = subprocess.run(crawler_args, check=False)
         if (
@@ -1091,7 +1093,7 @@ def run(raw_args):
     logger.info("----------")
     logger.info(
         f"Processing WARC files in/at "
-        f'{" ".join(str(warc_file) for warc_file in warc_files)}'
+        f"{' '.join(str(warc_file) for warc_file in warc_files)}"
     )
     warc2zim_args.extend(str(warc_file) for warc_file in warc_files)
 

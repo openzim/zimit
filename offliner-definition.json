@@ -889,7 +889,7 @@
     },
     "custom_css": {
       "type": "blob",
-      "kind": "image",
+      "kind": "css",
       "required": false,
       "title": "Custom CSS",
       "description": "URL to a CSS file to inject into pages",

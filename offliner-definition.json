@@ -38,7 +38,8 @@
       "maxLength": 80
     },
     "favicon": {
-      "type": "url",
+      "type": "blob",
+      "kind": "image",
       "required": false,
       "title": "Illustration",
       "description": "URL for Illustration. "
@@ -887,7 +888,8 @@
       "alias": "long-description"
     },
     "custom_css": {
-      "type": "url",
+      "type": "blob",
+      "kind": "image",
       "required": false,
       "title": "Custom CSS",
       "description": "URL to a CSS file to inject into pages",

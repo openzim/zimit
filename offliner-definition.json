@@ -970,6 +970,12 @@
       "alias": "name",
       "pattern": "^([a-z0-9\\-\\.]+_)([a-z\\-]+_)([a-z0-9\\-\\.]+)$",
       "relaxedPattern": "^[A-Za-z0-9._-]+$"
+    },
+    "overwrite": {
+      "type": "boolean",
+      "required": false,
+      "title": "Overwrite",
+      "description": "Whether to overwrite existing ZIM file if it exists"
     }
   }
 }

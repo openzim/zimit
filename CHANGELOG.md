@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ensure build directory is used explicitly instead of a randomized subdirectory when passed, and pre-create it if it does not exist.
   - Use all warc_dirs found instead of just the latest so interrupted crawls use all collected pages across runs when an explicit collections directory is not passed.
   - Don't cleanup an explicitly passed build directory.
+- Upgrade to browsertrix crawler 1.11.1 and Python 3.14 + small other Python dep / Github actions upgrades (#532)
+- Add back publishing of arm64 Docker image (#463)
 
 ## [3.0.5] - 2024-04-11
 

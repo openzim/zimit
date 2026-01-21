@@ -8,11 +8,11 @@ on:
 
 jobs:
   run-daily-tests:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: build zimit image
         run: docker build -t local-zimit .
@@ -21,7 +21,7 @@ jobs:
         run: docker run -v $PWD/output:/output local-zimit zimit --seeds https://website.test.openzim.org/ --name tests_eng_test-website --zim-file tests_eng_test-website.zim
 
       - name: archive ZIM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: tests_eng_test-website.zim
           path: output/tests_eng_test-website.zim

@@ -30,7 +30,7 @@ RUN set -e && \
     curl -k -L $url | tar -xz -C /kiwix-serve --strip-components 1
 
 # Build real "workload" container
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-bookworm
 
 # Add kiwix-serve
 COPY --from=kiwix-serve /kiwix-serve /usr/local/bin
@@ -70,6 +70,6 @@ RUN rm /tmp/chrome-linux64.zip /tmp/chromedriver-linux64.zip /tmp/versions.json
 RUN \
    python -m pip install --no-cache-dir -U \
      pip \
-     selenium==4.28.1 \
-     pytest==8.3.4 \
+     selenium==4.40.0 \
+     pytest==9.0.2 \
 && mkdir -p /work

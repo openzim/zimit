@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "zimit"
-requires-python = ">=3.13,<3.14"
+requires-python = ">=3.14,<3.15"
 description = "Make ZIM file from any website through crawling"
 readme = "README.md"
 dependencies = [
-  "requests==2.32.3",
-  "inotify==0.2.10",
-  "tld==0.13",
+  "requests==2.32.5",
+  "inotify==0.2.12",
+  "tld==0.13.1",
   "warc2zim @ git+https://github.com/openzim/warc2zim@main",
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
@@ -23,23 +23,23 @@ allow-direct-references = true  # to be removed once we use a released warc2zim 
 
 [project.optional-dependencies]
 scripts = [
-  "invoke==2.2.0",
+  "invoke==2.2.1",
 ]
 lint = [
-  "black==25.1.0",
-  "ruff==0.9.4",
+  "black==26.1.0",
+  "ruff==0.14.13",
 ]
 check = [
-  "pyright==1.1.393",
+  "pyright==1.1.408",
 ]
 test = [
-  "pytest==8.3.4",
-  "coverage==7.6.10",
+  "pytest==9.0.2",
+  "coverage==7.13.1",
 ]
 dev = [
-  "pre-commit==4.1.0",
-  "debugpy==1.8.12",
-  "selenium==4.28.1", # used in daily tests, convenient for dev purpose (autocompletion)
+  "pre-commit==4.5.1",
+  "debugpy==1.8.19",
+  "selenium==4.40.0", # used in daily tests, convenient for dev purpose (autocompletion)
   "zimit[scripts]",
   "zimit[lint]",
   "zimit[test]",
@@ -95,10 +95,10 @@ all = "inv checkall --args '{args}'"
 
 [tool.black]
 line-length = 88
-target-version = ['py313']
+target-version = ['py314']
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 line-length = 88
 src = ["src"]
 
@@ -221,5 +221,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.13"
+pythonVersion = "3.14"
 typeCheckingMode="basic"

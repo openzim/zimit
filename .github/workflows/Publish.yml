@@ -10,7 +10,7 @@ jobs:
     name: "Publish for AMD64"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build and push Docker image
         uses: openzim/docker-publish-action@v10
@@ -34,7 +34,7 @@ jobs:
   #   name: "Publish for ARM64"
   #
   #   steps:
-  #     - uses: actions/checkout@v4
+  #     - uses: actions/checkout@v6
   #
   #     - name: Build and push Docker image
   #       uses: openzim/docker-publish-action@v10

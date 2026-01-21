@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:1.6.0
+FROM webrecorder/browsertrix-crawler:1.11.1
 LABEL org.opencontainers.image.source=https://github.com/openzim/zimit
 
 # add deadsnakes ppa for latest Python on Ubuntu
@@ -7,10 +7,10 @@ RUN add-apt-repository ppa:deadsnakes/ppa -y
 RUN apt-get update \
  && apt-get install -qqy --no-install-recommends \
       libmagic1 \
-      python3.13-venv \
+      python3.14-venv \
  && rm -rf /var/lib/apt/lists/* \
  # python setup (in venv not to conflict with browsertrix)
- && python3.13 -m venv /app/zimit \
+ && python3.14 -m venv /app/zimit \
  # placeholder (default output location)
  && mkdir -p /output \
  # disable chrome upgrade

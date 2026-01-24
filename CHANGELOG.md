@@ -5,18 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
-## [Unreleased]
+## [3.1.1] - 2025-01-24
 
 ### Changed
+
 - Fix publishing of arm64 Docker image (#534, #538)
 - Workaround upstream issue with https://dl.yarnpkg.com/debian public key (#536)
 
 ## [3.1.0] - 2025-01-21
 
 ### Added
+
 - Added `--overwrite` flag to overwrite existing ZIM file if it exists (#399)
 
 ### Changed
+
 - Fix issues preventing interrupted crawls from being resumed. (#499)
   - Ensure build directory is used explicitly instead of a randomized subdirectory when passed, and pre-create it if it does not exist.
   - Use all warc_dirs found instead of just the latest so interrupted crawls use all collected pages across runs when an explicit collections directory is not passed.

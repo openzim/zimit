@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
-- Do not publish arm64 Docker image, CI is buggy (#534)
+- Fix publishing of arm64 Docker image (#534, #538)
+- Workaround upstream issue with https://dl.yarnpkg.com/debian public key (#536)
 
 ## [3.1.0] - 2025-01-21
 

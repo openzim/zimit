@@ -4,6 +4,10 @@ LABEL org.opencontainers.image.source=https://github.com/openzim/zimit
 # add deadsnakes ppa for latest Python on Ubuntu
 RUN add-apt-repository ppa:deadsnakes/ppa -y
 
+# update yarnpkg public key to workaround https://github.com/webrecorder/browsertrix-browser-base/issues/22
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
+ && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+
 RUN apt-get update \
  && apt-get install -qqy --no-install-recommends \
       libmagic1 \

@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-amd64:
+  docker-publish:
     runs-on: ubuntu-24.04
-    name: "Publish for AMD64"
+    name: "Publish Docker image"
 
     steps:
       - uses: actions/checkout@v6
@@ -29,26 +29,30 @@ jobs:
           repo_overview: auto
           platforms: |
             linux/amd64
+            linux/arm64
 
-  # publish-arm64:
-  #   runs-on: ubuntu-24.04-arm
-  #   name: "Publish for ARM64"
+  docker-start:
+    runs-on: ${{ matrix.os }}
+    name: "Start Docker image on ${{ matrix.os }}"
+    needs: docker-publish
+    strategy:
+      matrix:
+        os:
+          [
+            macos-14,
+            macos-15,
+            macos-15-intel,
+            macos-26,
+            windows-2022,
+            windows-2025,
+            windows-11-arm,
+            ubuntu-22.04,
+            ubuntu-24.04,
+            ubuntu-22.04-arm,
+            ubuntu-24.04-arm,
+          ]
 
-  #   steps:
-  #     - uses: actions/checkout@v6
-
-  #     - name: Build and push Docker image
-  #       uses: openzim/docker-publish-action@v10
-  #       with:
-  #         image-name: openzim/zimit
-  #         manual-tag: dev
-  #         latest-on-tag: false
-  #         restrict-to: openzim/zimit
-  #         registries: ghcr.io
-  #         credentials: |
-  #           GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
-  #           GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
-  #         repo_description: auto
-  #         repo_overview: auto
-  #         platforms: |
-  #           linux/arm64
+    steps:
+      - name: Ensure we can start the Docker image
+        run: |
+          docker run --rm ghcr.io/openzim/zimit:dev zimit --version

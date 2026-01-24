@@ -80,16 +80,18 @@ jobs:
       - name: run integration test suite
         run: docker run -v $PWD/tests-integration/integration.py:/app/integration.py -v $PWD/output:/output local-zimit bash -c "/app/zimit/bin/pip install pytest; /app/zimit/bin/pytest -v /app/integration.py"
 
-  build_docker_arm64:
-    runs-on: ubuntu-24.04-arm
-    name: "Build ARM64 Docker image"
+  build_docker:
+    runs-on: ubuntu-24.04
+    name: "Build Docker images"
     steps:
       - uses: actions/checkout@v6
 
-      - name: Ensure we can build the Docker image
-        run: |
-          docker build -t testimage .
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-      - name: Ensure we can start the Docker image
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Ensure we can build the Docker image with all supported plaftorms on amd64 runner
         run: |
-          docker run --rm testimage zimit --version
+          docker buildx build --platform linux/arm64 --platform linux/amd64 -t testimage .

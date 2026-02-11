@@ -604,8 +604,8 @@ def run(raw_args):
 
     parser.add_argument(
         "--lang",
-        help="if set, sets the language used by the browser, should be ISO 639 "
-        "language[-country] code",
+        help="Set the language used by the browser, must be ISO-639-1 country language "
+        "code",
     )
 
     parser.add_argument(

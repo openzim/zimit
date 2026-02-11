@@ -19,7 +19,7 @@
       "type": "string",
       "required": false,
       "title": "Browser Language",
-      "description": "If set, sets the language used by the browser, should be ISO 639 language[-country] code, e.g. `en` or `en-GB`"
+      "description": "Set the language used by the browser, must be ISO-639-1 country language code"
     },
     "title": {
       "type": "string",

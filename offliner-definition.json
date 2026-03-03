@@ -976,6 +976,26 @@
       "required": false,
       "title": "Overwrite",
       "description": "Whether to overwrite existing ZIM file if it exists"
+    },
+    "save_state": {
+      "type": "string-enum",
+      "required": false,
+      "title": "Save state",
+      "description": "Dev. option: if the crawl state should be serialized to the crawls/ directory",
+      "choices": [
+        {
+          "title": "never",
+          "value": "never"
+        },
+        {
+          "title": "partial",
+          "value": "partial"
+        },
+        {
+          "title": "always",
+          "value": "always"
+        }
+      ]
     }
   }
 }

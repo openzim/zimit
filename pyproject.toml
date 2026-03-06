@@ -12,6 +12,9 @@ dependencies = [
   "inotify==0.2.12",
   "tld==0.13.1",
   "warc2zim @ git+https://github.com/openzim/warc2zim@main",
+  "beautifulsoup4==4.14.3",
+  "warcio==1.7.5",
+  "argostranslate"
 ]
 dynamic = ["authors", "classifiers", "keywords", "license", "version", "urls"]
 
@@ -221,5 +224,5 @@ exclude_lines = [
 include = ["src", "tests", "tasks.py"]
 exclude = [".env/**", ".venv/**"]
 extraPaths = ["src"]
-pythonVersion = "3.14"
+pythonVersion = "3.11"
 typeCheckingMode="basic"

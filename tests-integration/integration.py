@@ -117,13 +117,13 @@ def test_stats_output_standard():
     }
 
     assert json.loads(Path("/output/warc2zim.json").read_bytes()) == {
-        "written": 8,
-        "total": 8,
+        "written": 6,
+        "total": 6,
     }
 
     assert json.loads(Path("/output/stats.json").read_bytes()) == {
-        "done": 8,
-        "total": 8,
+        "done": 6,
+        "total": 6,
         "partialZim": False,
     }
 

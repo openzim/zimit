@@ -20,6 +20,9 @@ jobs:
       - name: run crawl of test website
         run: docker run -v $PWD/output:/output local-zimit zimit --seeds https://website.test.openzim.org/ --name tests_eng_test-website --zim-file tests_eng_test-website.zim
 
+      - name: ensure proper permissions on output folder
+        run: sudo chown -R $(id -u -n):$(id -g -n) $PWD/output
+
       - name: archive ZIM
         uses: actions/upload-artifact@v6
         with:

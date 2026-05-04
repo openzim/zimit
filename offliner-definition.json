@@ -26,16 +26,16 @@
       "required": false,
       "title": "Title",
       "description": "Custom title for your ZIM. Defaults to title of main page",
-      "minLength": 1,
-      "maxLength": 30
+      "minGraphemes": 1,
+      "maxGraphemes": 30
     },
     "description": {
       "type": "string",
       "required": false,
       "title": "Description",
       "description": "Description for ZIM",
-      "minLength": 1,
-      "maxLength": 80
+      "minGraphemes": 1,
+      "maxGraphemes": 80
     },
     "favicon": {
       "type": "blob",
@@ -883,8 +883,8 @@
       "required": false,
       "title": "Long description",
       "description": "Optional long description for your ZIM",
-      "minLength": 1,
-      "maxLength": 4000,
+      "minGraphemes": 1,
+      "maxGraphemes": 4000,
       "alias": "long-description"
     },
     "custom_css": {

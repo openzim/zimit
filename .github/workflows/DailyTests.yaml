@@ -35,3 +35,6 @@ jobs:
 
       - name: run integration test suite
         run: docker run -e SKIP_YOUTUBE_TEST="True" -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-tests-daily bash -c "cd /app && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"
+
+      - name: cleanup docker
+        run: docker system prune -a

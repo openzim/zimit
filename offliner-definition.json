@@ -1004,5 +1004,39 @@
         }
       ]
     }
-  }
+  },
+  "zimMetadata": [
+    {
+      "metadata": "Name",
+      "flag": "name"
+    },
+    {
+      "metadata": "Title",
+      "flag": "title"
+    },
+    {
+      "metadata": "Description",
+      "flag": "description"
+    },
+    {
+      "metadata": "LongDescription",
+      "flag": "long_description"
+    },
+    {
+      "metadata": "Creator",
+      "flag": "creator"
+    },
+    {
+      "metadata": "Publisher",
+      "flag": "publisher"
+    },
+    {
+      "metadata": "Language",
+      "flag": "zim_lang"
+    },
+    {
+      "metadata": "Illustration",
+      "flag": "favicon"
+    }
+  ]
 }

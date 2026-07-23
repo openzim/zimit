@@ -8,7 +8,7 @@ on:
 
 jobs:
   run-daily-tests:
-    runs-on: [self-hosted, ubuntu-24.04]
+    runs-on: [self-hosted, Linux, X64]
 
     steps:
       - name: checkout

@@ -93,7 +93,7 @@ def test_youtube_video(chrome_driver, kiwix_serve):  # noqa: ARG001
 
     button = WebDriverWait(chrome_driver, 1).until(
         expected_conditions.presence_of_element_located(
-            (By.XPATH, "//button[@title='Play']")
+            (By.XPATH, "//button[@title='Play video']")
         )
     )
 

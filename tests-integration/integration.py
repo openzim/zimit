@@ -114,6 +114,7 @@ def test_stats_output_standard():
         "total": 35,
         "failed": 18,
         "limit": {"max": 0, "hit": False},
+        "excluded": 0,
     }
 
     assert json.loads(Path("/output/warc2zim.json").read_bytes()) == {

@@ -1231,7 +1231,9 @@ def get_crawler_cmd_line(args):
             + (
                 "sizeLimit"
                 if arg in ["sizeSoftLimit", "sizeHardLimit"]
-                else "timeLimit" if arg in ["timeSoftLimit", "timeHardLimit"] else arg
+                else "timeLimit"
+                if arg in ["timeSoftLimit", "timeHardLimit"]
+                else arg
             )
         )
         if not isinstance(value, bool):

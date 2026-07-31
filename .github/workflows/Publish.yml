@@ -7,12 +7,12 @@ on:
 jobs:
   docker-publish:
     runs-on: ubuntu-24.04
-    name: "Publish for AMD64"
+    name: "Docker publish"
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Build and push Docker image
+      - name: Build and push Docker images
         uses: openzim/docker-publish-action@v10
         with:
           image-name: openzim/zimit

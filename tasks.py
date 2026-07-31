@@ -24,6 +24,7 @@ def report_cov(ctx: Context, *, html: bool = False):
     """report coverage"""
     ctx.run("coverage combine", warn=True, pty=use_pty)
     ctx.run("coverage report --show-missing", pty=use_pty)
+    ctx.run("coverage xml", pty=use_pty)
     if html:
         ctx.run("coverage html", pty=use_pty)
 
@@ -41,69 +42,65 @@ def coverage(ctx: Context, args: str = "", *, html: bool = False):
     report_cov(ctx, html=html)
 
 
-@task(optional=["args"], help={"args": "black additional arguments"})
-def lint_black(ctx: Context, args: str = "."):
-    args = args or "."  # needed for hatch script
-    ctx.run("black --version", pty=use_pty)
-    ctx.run(f"black --check --diff {args}", pty=use_pty)
-
-
-@task(optional=["args"], help={"args": "ruff additional arguments"})
-def lint_ruff(ctx: Context, args: str = "."):
+def _lint(ctx: Context, args: str = "."):
     args = args or "."  # needed for hatch script
     ctx.run("ruff --version", pty=use_pty)
     ctx.run(f"ruff check {args}", pty=use_pty)
 
 
-@task(
-    optional=["args"],
-    help={
-        "args": "linting tools (black, ruff) additional arguments, typically a path",
-    },
-)
-def lintall(ctx: Context, args: str = "."):
-    """Check linting"""
+@task(optional=["args"], help={"args": "ruff additional arguments"})
+def check_lint(ctx: Context, args: str = "."):
+    """check linting with ruff"""
     args = args or "."  # needed for hatch script
-    lint_black(ctx, args)
-    lint_ruff(ctx, args)
+    _lint(ctx, args)
+
+
+@task(optional=["args"], help={"args": "ruff additional arguments"})
+def fix_lint(ctx: Context, args: str = "."):
+    """fix linting issues with ruff"""
+    args = args or "."  # needed for hatch script
+    _lint(ctx, f"--fix {args}")
 
 
 @task(optional=["args"], help={"args": "check tools (pyright) additional arguments"})
-def check_pyright(ctx: Context, args: str = ""):
+def check_type(ctx: Context, args: str = ""):
     """check static types with pyright"""
     ctx.run("pyright --version")
     ctx.run(f"pyright {args}", pty=use_pty)
 
 
-@task(optional=["args"], help={"args": "check tools (pyright) additional arguments"})
-def checkall(ctx: Context, args: str = ""):
-    """check static types"""
-    check_pyright(ctx, args)
-
-
-@task(optional=["args"], help={"args": "black additional arguments"})
-def fix_black(ctx: Context, args: str = "."):
-    """fix black formatting"""
+def _format(ctx: Context, args: str = "."):
     args = args or "."  # needed for hatch script
-    ctx.run(f"black {args}", pty=use_pty)
+    ctx.run("ruff --version", pty=use_pty)
+    ctx.run(f"ruff format {args}", pty=use_pty)
 
 
 @task(optional=["args"], help={"args": "ruff additional arguments"})
-def fix_ruff(ctx: Context, args: str = "."):
-    """fix all ruff rules"""
+def check_format(ctx: Context, args: str = "."):
+    """check formatting with ruff"""
     args = args or "."  # needed for hatch script
-    ctx.run(f"ruff check --fix {args}", pty=use_pty)
+    _format(ctx, f"--check {args}")
 
 
-@task(
-    optional=["args"],
-    help={
-        "args": "linting tools (black, ruff) additional arguments, typically a path",
-    },
-)
-def fixall(ctx: Context, args: str = "."):
+@task(optional=["args"], help={"args": "ruff additional arguments"})
+def fix_format(ctx: Context, args: str = "."):
+    """fix formatting with ruff"""
+    args = args or "."  # needed for hatch script
+    _format(ctx, args)
+
+
+@task(optional=["args"], help={"args": "additional arguments"})
+def check_all(ctx: Context, args: str = ""):
+    """check linting, formatting and static types"""
+    args = args or "."  # needed for hatch script
+    check_lint(ctx, args)
+    check_format(ctx, args)
+    check_type(ctx, args)
+
+
+@task(optional=["args"], help={"args": "additional arguments"})
+def fix_all(ctx: Context, args: str = ""):
     """Fix everything automatically"""
     args = args or "."  # needed for hatch script
-    fix_black(ctx, args)
-    fix_ruff(ctx, args)
-    lintall(ctx, args)
+    fix_lint(ctx, args)
+    fix_format(ctx, args)

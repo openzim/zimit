@@ -22,13 +22,13 @@ jobs:
       - name: Install dependencies (and project)
         run: |
           pip install -U pip
-          pip install -e .[lint,scripts,test,check]
+          pip install -e .[qa,scripts,test]
 
-      - name: Check black formatting
-        run: inv lint-black
+      - name: Check Linting
+        run: inv check-lint
 
-      - name: Check ruff
-        run: inv lint-ruff
+      - name: Check Formatting
+        run: inv check-format
 
-      - name: Check pyright
-        run: inv check-pyright
+      - name: Check Type
+        run: inv check-type

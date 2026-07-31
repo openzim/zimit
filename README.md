@@ -9,7 +9,7 @@ Zimit is a scraper allowing to create [ZIM file](https://en.wikipedia.org/wiki/Z
 
 Zimit adheres to openZIM's [Contribution Guidelines](https://github.com/openzim/overview/wiki/Contributing).
 
-Zimit has implemented openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/blob/main/docs/Policy.md) **v1.0.1**.
+Zimit has implemented openZIM's [Python bootstrap, conventions and policies](https://github.com/openzim/_python-bootstrap/blob/main/docs/Policy.md) **v2.0.0**.
 
 Capabilities and known limitations
 --------------------

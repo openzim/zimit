@@ -17,6 +17,7 @@ import urllib.parse
 from argparse import ArgumentParser
 from multiprocessing import Process
 from pathlib import Path
+from zimit.translate import translate_warc
 
 import inotify
 import inotify.adapters
@@ -34,6 +35,22 @@ from zimit.constants import (
 from zimit.utils import download_file
 
 temp_root_dir: Path | None = None
+
+
+def iter_warc_files(paths: list[Path]):
+    """Yield concrete WARC files from a mixed list of files/directories."""
+    for path in paths:
+        if path.is_file():
+            if path.suffix == ".warc" or "".join(path.suffixes[-2:]) == ".warc.gz":
+                yield path
+            continue
+        if path.is_dir():
+            for warc_file in sorted(path.rglob("*.warc")):
+                if warc_file.is_file():
+                    yield warc_file
+            for warc_file in sorted(path.rglob("*.warc.gz")):
+                if warc_file.is_file():
+                    yield warc_file
 
 
 class ProgressFileWatcher:
@@ -778,6 +795,12 @@ def run(raw_args):
         " used). Single value with individual error codes separated by comma",
     )
 
+    parser.add_argument(
+        "--translate",
+        help="If Set, translates the scrapped content into specific language "
+        "(ISO 639-1 code, ex: en, fr, es...). Default is no translation.",
+    )
+
     # by design, all unknown args are for warc2zim ; known one are either for crawler
     # or shared
     known_args, warc2zim_args = parser.parse_known_args(raw_args)
@@ -1095,6 +1118,15 @@ def run(raw_args):
         f"Processing WARC files in/at "
         f"{' '.join(str(warc_file) for warc_file in warc_files)}"
     )
+
+    if known_args.translate:  # Call Translate before warc2zim if called
+        logger.info(f"Translating content to {known_args.translate} before warc2zim")
+        translation_targets = list(iter_warc_files(warc_files))
+        if len(translation_targets) == 0:
+            raise RuntimeError("No WARC files found to translate")
+        for warc_file in translation_targets:
+            translate_warc(warc_file, known_args.translate)
+
     warc2zim_args.extend(str(warc_file) for warc_file in warc_files)
 
     logger.info(f"Calling warc2zim with these args: {warc2zim_args}")

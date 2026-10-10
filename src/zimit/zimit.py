@@ -1101,7 +1101,7 @@ def run(raw_args):
 
     warc2zim_exit_code = warc2zim(warc2zim_args)
 
-    if known_args.zimit_progress_file:
+    if known_args.zimit_progress_file and zimit_stats_file.exists():
         stats_content = json.loads(zimit_stats_file.read_bytes())
         stats_content["partialZim"] = partial_zim
         zimit_stats_file.write_text(json.dumps(stats_content))

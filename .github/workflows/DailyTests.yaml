@@ -14,6 +14,9 @@ jobs:
       - name: checkout
         uses: actions/checkout@v6
 
+      - name: free disk space
+        run: docker system prune -af
+
       - name: build zimit image
         run: docker build -t local-zimit .
 
@@ -37,4 +40,5 @@ jobs:
         run: docker run -e SKIP_YOUTUBE_TEST="False" -v $PWD/tests-daily/daily.py:/app/daily.py -v $PWD/output:/output local-tests-daily bash -c "cd /app && pytest -v --log-level=INFO --log-format='%(levelname)s - %(message)s' daily.py"
 
       - name: cleanup docker
-        run: docker system prune -a
+        if: always()
+        run: docker system prune -af

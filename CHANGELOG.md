@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade to browsertrix crawler 1.15.2 (#592)
+
 ### Fixed
 
 - Fix crash when stats file has not been created yet (#544)

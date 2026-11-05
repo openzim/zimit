@@ -46,8 +46,12 @@ RUN set -e && \
             fi ; \
         done && \
         if [ "$found" -ne 1 ] ; then \
-            echo "No kiwix-tools nightly build found in the last $MAX_DAYS_LOOKBACK days" && \
-            exit 1 ; \
+            # no nightly worked in the whole lookback window, fall back to
+            # the latest released (stable) kiwix-tools build for our arch
+            echo "No kiwix-tools nightly build found in the last $MAX_DAYS_LOOKBACK days, falling back to latest release" && \
+            url="http://mirror.download.kiwix.org/release/kiwix-tools/kiwix-tools_linux-$ARCH.tar.gz" && \
+            echo "URL: $url" && \
+            curl -k -f -L $url | tar -xz -C /kiwix-serve --strip-components 1 ; \
         fi ; \
     fi
 

@@ -30,9 +30,11 @@ RUN set -e && \
     else \
         # no version requested, find the most recent nightly which actually
         # built kiwix-tools for our arch (a nightly build can fail for a given
-        # day, in which case the tarball is simply missing from that day)
+        # day, in which case the tarball is simply missing from that day);
+        # kiwix-tools CI is fragile enough that we look quite far back
+        MAX_DAYS_LOOKBACK=100 && \
         found=0 && \
-        for days_ago in 0 1 2 3 4 5 6 7 ; do \
+        for days_ago in $(seq 0 $MAX_DAYS_LOOKBACK) ; do \
             candidate=$(date -d @$(( $(date +%s) - days_ago * 86400 )) +"%Y-%m-%d") && \
             url="http://mirror.download.kiwix.org/nightly/$candidate/kiwix-tools_linux-$ARCH-$candidate.tar.gz" && \
             echo "Trying URL: $url" && \
@@ -44,7 +46,7 @@ RUN set -e && \
             fi ; \
         done && \
         if [ "$found" -ne 1 ] ; then \
-            echo "No kiwix-tools nightly build found in the last 7 days" && \
+            echo "No kiwix-tools nightly build found in the last $MAX_DAYS_LOOKBACK days" && \
             exit 1 ; \
         fi ; \
     fi

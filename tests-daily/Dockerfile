@@ -7,8 +7,6 @@ ARG TARGETPLATFORM
 ARG KIWIX_TOOLS_VERSION
 
 RUN set -e && \
-    # default (no KIWIX_TOOLS_VERSION set) to today's nightly
-    if [ -z "$KIWIX_TOOLS_VERSION" ] ; then KIWIX_TOOLS_VERSION=$(date +"%Y-%m-%d") ; fi && \
     apk --no-cache add dumb-init curl && \
     echo "TARGETPLATFORM: $TARGETPLATFORM" && \
     if [ "$TARGETPLATFORM" = "linux/386" ]; then ARCH="i586"; \
@@ -23,11 +21,33 @@ RUN set -e && \
         -o "$TARGETPLATFORM" = "linux/amd64" ]; then ARCH="x86_64"; \
     # we dont suppot any other arch so let it fail
     else ARCH="unknown"; fi && \
-    # download requested kiwix-tools version
-    url="http://mirror.download.kiwix.org/nightly/$KIWIX_TOOLS_VERSION/kiwix-tools_linux-$ARCH-$KIWIX_TOOLS_VERSION.tar.gz" && \
-    echo "URL: $url" && \
     mkdir /kiwix-serve && \
-    curl -k -L $url | tar -xz -C /kiwix-serve --strip-components 1
+    if [ -n "$KIWIX_TOOLS_VERSION" ] ; then \
+        # explicit version requested, do not fallback to another one
+        url="http://mirror.download.kiwix.org/nightly/$KIWIX_TOOLS_VERSION/kiwix-tools_linux-$ARCH-$KIWIX_TOOLS_VERSION.tar.gz" && \
+        echo "URL: $url" && \
+        curl -k -f -L $url | tar -xz -C /kiwix-serve --strip-components 1 ; \
+    else \
+        # no version requested, find the most recent nightly which actually
+        # built kiwix-tools for our arch (a nightly build can fail for a given
+        # day, in which case the tarball is simply missing from that day)
+        found=0 && \
+        for days_ago in 0 1 2 3 4 5 6 7 ; do \
+            candidate=$(date -d @$(( $(date +%s) - days_ago * 86400 )) +"%Y-%m-%d") && \
+            url="http://mirror.download.kiwix.org/nightly/$candidate/kiwix-tools_linux-$ARCH-$candidate.tar.gz" && \
+            echo "Trying URL: $url" && \
+            if curl -k -f -s -o /dev/null --head $url ; then \
+                echo "Found nightly build: $candidate" && \
+                curl -k -f -L $url | tar -xz -C /kiwix-serve --strip-components 1 && \
+                found=1 && \
+                break ; \
+            fi ; \
+        done && \
+        if [ "$found" -ne 1 ] ; then \
+            echo "No kiwix-tools nightly build found in the last 7 days" && \
+            exit 1 ; \
+        fi ; \
+    fi
 
 # Build real "workload" container
 FROM python:3.14-slim-bookworm

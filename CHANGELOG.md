@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support for `--useRobots` (and its `--robots` alias) browsertrix crawler parameter (#565)
+
 ### Changed
 
 - Upgrade to browsertrix crawler 1.15.2 (#592)

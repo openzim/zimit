@@ -698,6 +698,13 @@
       "title": "Sitemap To Date",
       "description": "If set, filter URLs from sitemaps to those less than or equal to (<=) provided ISO Date string (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS or partial date)"
     },
+    "use_robots": {
+      "type": "boolean",
+      "required": false,
+      "default": true,
+      "title": "Use Robots",
+      "description": "If set, fetch and respect page disallows specified in per-host robots.txt"
+    },
     "behavior_timeout": {
       "type": "integer",
       "required": false,

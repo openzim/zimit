@@ -430,6 +430,14 @@ def run(raw_args):
     )
 
     parser.add_argument(
+        "--useRobots",
+        "--robots",
+        help="If set, fetch and respect page disallows specified in per-host "
+        "robots.txt",
+        action="store_true",
+    )
+
+    parser.add_argument(
         "--statsFilename",
         help="If set, output crawl stats as JSON to this file. Relative filename "
         "resolves to output directory, see --output.",
@@ -1169,6 +1177,7 @@ def get_crawler_cmd_line(args):
         "useSitemap",
         "sitemapFromDate",
         "sitemapToDate",
+        "useRobots",
         # statsFilename (manipulated),
         "behaviors",
         "behaviorTimeout",

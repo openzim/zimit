@@ -33,6 +33,14 @@ jobs:
           path: output/tests_eng_test-website.zim
           retention-days: 30
 
+      - name: run zimcheck
+        run: |
+          docker run --rm \
+            -v "$PWD/output:/output:ro" \
+            ghcr.io/openzim/zim-tools:3.8.0 \
+            zimcheck --empty --checksum --integrity --favicon --main \
+            /output/tests_eng_test-website.zim
+
       - name: build tests-daily Docker image
         run: docker build -t local-tests-daily tests-daily
 

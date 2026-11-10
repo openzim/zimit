@@ -77,6 +77,22 @@ jobs:
       - name: run standard crawl
         run: docker run -v $PWD/output:/output local-zimit zimit --seeds http://website.test.openzim.org/http-return-codes.html --name tests_en_onepage --zim-file tests_en_onepage.zim --adminEmail test@example.com --mobileDevice "Pixel 5" --zimit-progress-file /output/stats.json --statsFilename /output/crawl.json --warc2zim-progress-file /output/warc2zim.json --keep
 
+      - name: run zimcheck
+        run: |
+          for zim in output/tests_en_onepage.zim output/tests_en_sizesoftlimit.zim output/tests_en_timesoftlimit.zim; do
+            if [ ! -f "$zim" ]; then
+              echo "::error::Expected ZIM file not found: $zim"
+              exit 1
+            fi
+
+            echo "Running zimcheck on $zim"
+            docker run --rm \
+              -v "$PWD/output:/output:ro" \
+              ghcr.io/openzim/zim-tools:3.8.0 \
+              zimcheck --empty --checksum --integrity --metadata --favicon --main \
+              "/output/$(basename "$zim")"
+          done
+
       - name: run integration test suite
         run: docker run -v $PWD/tests-integration/integration.py:/app/integration.py -v $PWD/output:/output local-zimit bash -c "/app/zimit/bin/pip install pytest; /app/zimit/bin/pytest -v /app/integration.py"
 

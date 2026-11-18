@@ -950,7 +950,7 @@
       "required": false,
       "title": "Custom Behaviors",
       "description": "JS code for custom behaviors to customize crawler. Single string with individual JS files URL/path separated by a comma.",
-      "alias": "custom-behaviours"
+      "alias": "custom-behaviors"
     },
     "zimit_progress_file": {
       "type": "string",

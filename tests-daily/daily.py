@@ -14,7 +14,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 KIWIX_SERVE_START_SLEEP = 1
 
 ZIM_NAME = "tests_eng_test-website"
-YOUTUBE_VIDEO_PATH = "youtube.fuzzy.replayweb.page/embed/g5skcrNXdDM"
+YOUTUBE_VIDEO_PATH = "-/youtube.fuzzy.replayweb.page/embed/g5skcrNXdDM"
 
 SKIP_YOUTUBE_TEST = os.getenv("SKIP_YOUTUBE_TEST", "False").lower() == "true"
 
@@ -88,7 +88,7 @@ def test_youtube_video(chrome_driver, kiwix_serve):  # noqa: ARG001
 
     chrome_driver.get(f"http://localhost:80/content/{ZIM_NAME}/{YOUTUBE_VIDEO_PATH}")
 
-    if chrome_driver.title == "Content not found":
+    if chrome_driver.title == "Page not found":
         raise Exception("Wrong URL, kiwix-serve said that content is not found")
 
     button = WebDriverWait(chrome_driver, 15).until(

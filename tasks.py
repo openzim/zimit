@@ -92,9 +92,11 @@ def fix_format(ctx: Context, args: str = "."):
 @task(optional=["args"], help={"args": "additional arguments"})
 def check_all(ctx: Context, args: str = ""):
     """check linting, formatting and static types"""
-    args = args or "."  # needed for hatch script
-    check_lint(ctx, args)
-    check_format(ctx, args)
+    # pyright already scopes itself via [tool.pyright] include in pyproject.toml;
+    # passing it a path (even ".") overrides that and falls back to exclude-only
+    # filtering, so don't force the "." default used for ruff onto check_type.
+    check_lint(ctx, args or ".")
+    check_format(ctx, args or ".")
     check_type(ctx, args)
 
 

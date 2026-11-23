@@ -1,4 +1,4 @@
-FROM webrecorder/browsertrix-crawler:1.15.2
+FROM webrecorder/browsertrix-crawler:1.15.4
 LABEL org.opencontainers.image.source=https://github.com/openzim/zimit
 
 # static uv binary, used below to fetch a standalone Python 3.14 build

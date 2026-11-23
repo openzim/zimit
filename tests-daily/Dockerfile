@@ -96,6 +96,6 @@ RUN rm /tmp/chrome-linux64.zip /tmp/chromedriver-linux64.zip /tmp/versions.json
 RUN \
    python -m pip install --no-cache-dir -U \
      pip \
-     selenium==4.40.0 \
-     pytest==9.0.2 \
+     selenium==4.54.0 \
+     pytest==9.2.0 \
 && mkdir -p /work

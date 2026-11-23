@@ -42,7 +42,7 @@ def test_zim_main_page():
     assert main_entry.is_redirect
     assert (
         main_entry.get_redirect_entry().path
-        == "website.test.openzim.org/http-return-codes.html"
+        == "-/website.test.openzim.org/http-return-codes.html"
     )
 
 
@@ -63,23 +63,23 @@ def test_files_list():
         "_zim_static/__wb_module_decl.js",
         "_zim_static/wombat.js",
         "_zim_static/wombatSetup.js",
-        "website.test.openzim.org/http-return-codes.html",
-        "website.test.openzim.org/200-response",
-        "website.test.openzim.org/201-response",
-        "website.test.openzim.org/202-response",
-        "website.test.openzim.org/301-external-redirect-ok",
-        "website.test.openzim.org/301-internal-redirect-ok",
-        "website.test.openzim.org/302-external-redirect-ok",
-        "website.test.openzim.org/302-internal-redirect-ok",
-        "website.test.openzim.org/307-external-redirect-ok",
-        "website.test.openzim.org/307-internal-redirect-ok",
-        "website.test.openzim.org/308-external-redirect-ok",
-        "website.test.openzim.org/308-internal-redirect-ok",
-        "website.test.openzim.org/http-return-codes.html",
-        "website.test.openzim.org/icons/favicon.ico",
-        "website.test.openzim.org/icons/site.webmanifest",
-        "website.test.openzim.org/internal_redirect_target.html",
-        "www.example.com/",
+        "-/website.test.openzim.org/http-return-codes.html",
+        "-/website.test.openzim.org/200-response",
+        "-/website.test.openzim.org/201-response",
+        "-/website.test.openzim.org/202-response",
+        "-/website.test.openzim.org/301-external-redirect-ok",
+        "-/website.test.openzim.org/301-internal-redirect-ok",
+        "-/website.test.openzim.org/302-external-redirect-ok",
+        "-/website.test.openzim.org/302-internal-redirect-ok",
+        "-/website.test.openzim.org/307-external-redirect-ok",
+        "-/website.test.openzim.org/307-internal-redirect-ok",
+        "-/website.test.openzim.org/308-external-redirect-ok",
+        "-/website.test.openzim.org/308-internal-redirect-ok",
+        "-/website.test.openzim.org/http-return-codes.html",
+        "-/website.test.openzim.org/icons/favicon.ico",
+        "-/website.test.openzim.org/icons/site.webmanifest",
+        "-/website.test.openzim.org/internal_redirect_target.html",
+        "-/www.example.com/",
     ]:
         assert zim_fh.get_content(expected_entry)
 

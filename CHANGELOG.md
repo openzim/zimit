@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add support for `--useRobots` (and its `--robots` alias) browsertrix crawler parameter (#565)
 - Add regression coverage for WARC revisits redirecting a trailing-slash URL to the same path without the slash (#584)
+- Log a periodic heartbeat during ZIM creation so long title-indexing phases are visibly active (#580)
 
 ### Changed
 

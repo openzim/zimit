@@ -13,6 +13,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import threading
+import time
 import urllib.parse
 from argparse import ArgumentParser
 from multiprocessing import Process
@@ -106,6 +108,30 @@ class ProgressFileWatcher:
                     continue
                 with open(zimit_fpath, "w") as ofh:
                     json.dump(out, ofh)
+
+
+class ConversionHeartbeat:
+    def __init__(self, interval: float = 300.0):
+        self.interval = interval
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+        self._started_at = 0.0
+
+    def __enter__(self):
+        self._started_at = time.monotonic()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join()
+
+    def _run(self):
+        while not self._stop_event.wait(self.interval):
+            elapsed = int(time.monotonic() - self._started_at)
+            logger.info(f"warc2zim is still running after {elapsed}s")
 
 
 def cleanup():
@@ -1107,7 +1133,8 @@ def run(raw_args):
 
     logger.info(f"Calling warc2zim with these args: {warc2zim_args}")
 
-    warc2zim_exit_code = warc2zim(warc2zim_args)
+    with ConversionHeartbeat():
+        warc2zim_exit_code = warc2zim(warc2zim_args)
 
     if known_args.zimit_progress_file and zimit_stats_file.exists():
         stats_content = json.loads(zimit_stats_file.read_bytes())

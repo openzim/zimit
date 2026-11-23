@@ -10,7 +10,7 @@ jobs:
     name: "Docker publish"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Build and push Docker images
         uses: openzim/docker-publish-action@v10

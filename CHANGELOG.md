@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Upgrade to browsertrix crawler 1.15.2 (#592)
 - Install Python via `uv` instead of the deadsnakes PPA, to avoid Launchpad mirror outages (#608)
+- Upgrade to browsertrix crawler 1.15.4, warc2zim 2.4.0 and other Python / GitHub Actions dependencies (#607)
 
 ### Fixed
 

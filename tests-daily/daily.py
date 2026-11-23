@@ -91,8 +91,8 @@ def test_youtube_video(chrome_driver, kiwix_serve):  # noqa: ARG001
     if chrome_driver.title == "Content not found":
         raise Exception("Wrong URL, kiwix-serve said that content is not found")
 
-    button = WebDriverWait(chrome_driver, 1).until(
-        expected_conditions.presence_of_element_located(
+    button = WebDriverWait(chrome_driver, 15).until(
+        expected_conditions.element_to_be_clickable(
             (By.XPATH, "//button[@title='Play video']")
         )
     )
@@ -101,7 +101,7 @@ def test_youtube_video(chrome_driver, kiwix_serve):  # noqa: ARG001
 
     button.click()
 
-    video = WebDriverWait(chrome_driver, 1).until(
+    video = WebDriverWait(chrome_driver, 10).until(
         expected_conditions.presence_of_element_located((By.TAG_NAME, "video"))
     )
 

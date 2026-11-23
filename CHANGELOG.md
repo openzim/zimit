@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Upgrade to browsertrix crawler 1.15.2 (#592)
+- Install Python via `uv` instead of the deadsnakes PPA, to avoid Launchpad mirror outages (#608)
 
 ### Fixed
 

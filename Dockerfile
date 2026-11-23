@@ -1,8 +1,10 @@
 FROM webrecorder/browsertrix-crawler:1.15.2
 LABEL org.opencontainers.image.source=https://github.com/openzim/zimit
 
-# add deadsnakes ppa for latest Python on Ubuntu
-RUN add-apt-repository ppa:deadsnakes/ppa -y
+# static uv binary, used below to fetch a standalone Python 3.14 build
+# instead of relying on the deadsnakes PPA, whose Launchpad mirror has had
+# repeated multi-hour outages
+COPY --from=ghcr.io/astral-sh/uv:0.13.9 /uv /usr/local/bin/uv
 
 # update yarnpkg public key to workaround https://github.com/webrecorder/browsertrix-browser-base/issues/22
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -11,10 +13,10 @@ RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
 RUN apt-get update \
  && apt-get install -qqy --no-install-recommends \
       libmagic1 \
-      python3.14-venv \
  && rm -rf /var/lib/apt/lists/* \
- # python setup (in venv not to conflict with browsertrix)
- && python3.14 -m venv /app/zimit \
+ # python setup (in venv not to conflict with browsertrix); --seed installs
+ # pip in the venv, since the rest of this file uses "python -m pip install"
+ && uv venv --seed --python 3.14 /app/zimit \
  # placeholder (default output location)
  && mkdir -p /output \
  # disable chrome upgrade

@@ -5,13 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (as of version 1.2.0).
 
-## [Unreleased]
+## [3.2.0] - 2026-11-24
 
 ### Added
 
 - Add support for `--useRobots` (and its `--robots` alias) browsertrix crawler parameter (#565)
 - Add regression coverage for WARC revisits redirecting a trailing-slash URL to the same path without the slash (#584)
-- Log a periodic heartbeat during ZIM creation so long title-indexing phases are visibly active (#580)
+- Log a periodic heartbeat during ZIM creation so long title-indexing phases are visibly active (#610)
 
 ### Changed
 
@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix crash when stats file has not been created yet (#544)
+- Fix `--custom-behaviors` argument not being accepted due to a typo in its alias (#602)
+- Fix ZIM paths being corrupted by an incorrect wombat.js replay-prefix computation, via zimscraperlib (#589, openzim/python-scraperlib#396, #408)
+- Fix YouTube video support broken by a wombat.js POST→GET fetch bug, via zimscraperlib (#583, openzim/python-scraperlib#379)
+- Fix error when passing multiple ZIM languages as a comma-separated string, via warc2zim (#506, openzim/warc2zim#478)
 
 ## [3.1.3] - 2026-07-31
 

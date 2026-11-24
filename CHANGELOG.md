@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add regression coverage for main-page links using the replay path prefix (#571)
+
 ## [3.2.0] - 2026-11-24
 
 ### Added

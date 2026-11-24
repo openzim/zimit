@@ -6,28 +6,17 @@ on:
 
 jobs:
   docker-publish:
-    runs-on: ubuntu-24.04
     name: "Docker publish"
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Build and push Docker images
-        uses: openzim/docker-publish-action@v10
-        with:
-          image-name: openzim/zimit
-          tag-pattern: /^v([0-9.]+)$/
-          latest-on-tag: true
-          restrict-to: openzim/zimit
-          registries: ghcr.io
-          credentials: |
-            GHCRIO_USERNAME=${{ secrets.GHCR_USERNAME }}
-            GHCRIO_TOKEN=${{ secrets.GHCR_TOKEN }}
-          repo_description: auto
-          repo_overview: auto
-          platforms: |
-            linux/amd64
-            linux/arm64
+    if: github.repository == 'openzim/zimit'
+    uses: openzim/overview/.github/workflows/docker-publish.yaml@main
+    with:
+      image-name: openzim/zimit
+      tag-pattern: /^v([0-9.]+)$/
+      latest-on-tag: true
+      platforms: linux/amd64 linux/arm64
+    secrets:
+      ghcr_username: ${{ secrets.GHCR_USERNAME }}
+      ghcr_token: ${{ secrets.GHCR_TOKEN }}
 
   docker-start:
     runs-on: ${{ matrix.os }}

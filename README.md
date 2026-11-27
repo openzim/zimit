@@ -29,6 +29,8 @@ The system:
 
 The `zimit.py` is the entrypoint for the system.
 
+Before the full crawl starts, zimit runs a single-page test crawl of the seed and converts it with warc2zim, to catch most warc2zim failures early rather than after a potentially very long crawl.
+
 After the crawl is done, warc2zim is used to write a zim to the `/output` directory, which should be mounted as a volume to not loose the ZIM created when container stops.
 
 Using the `--keep` flag, the crawled WARCs and few other artifacts will also be kept in a temp directory inside `/output`

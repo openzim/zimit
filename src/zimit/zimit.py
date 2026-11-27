@@ -29,7 +29,9 @@ from zimit.__about__ import __version__
 from zimit.constants import (
     EXIT_CODE_CRAWLER_SIZE_LIMIT_HIT,
     EXIT_CODE_CRAWLER_TIME_LIMIT_HIT,
+    EXIT_CODE_SIGINT_RECEIVED,
     EXIT_CODE_WARC2ZIM_CHECK_FAILED,
+    EXIT_CODE_WARC2ZIM_TEST_CRAWL_FAILED,
     NORMAL_WARC2ZIM_EXIT_CODE,
     logger,
 )
@@ -939,6 +941,67 @@ def run(raw_args):
     crawler_args.append("--cwd")
     crawler_args.append(str(temp_root_dir))
 
+    # run a single-page test crawl and a real (not just args-check) warc2zim
+    # conversion of its result, so that most warc2zim failures are caught before
+    # running the full crawl, which can take a very long time. Skipped when WARCs
+    # are passed directly (no crawl happens) or in dry-run (no WARC would be
+    # produced to test against).
+    if not known_args.warcs and not known_args.dryRun:
+        test_crawl_dir = temp_root_dir / "warc2zim-test-crawl"
+        test_crawl_dir.mkdir(parents=True, exist_ok=True)
+        test_output_dir = temp_root_dir / "warc2zim-test-output"
+        test_output_dir.mkdir(parents=True, exist_ok=True)
+
+        test_crawler_args = strip_flag(crawler_args, "--cwd")
+        test_crawler_args = strip_flag(test_crawler_args, "--pageLimit")
+        test_crawler_args = strip_flag(test_crawler_args, "--maxPageLimit")
+        test_crawler_args += [
+            "--cwd",
+            str(test_crawl_dir),
+            "--pageLimit",
+            "1",
+            "--maxPageLimit",
+            "1",
+        ]
+
+        logger.info("")
+        logger.info("----------")
+        logger.info(
+            "Running a single-page test crawl, to catch most warc2zim failures "
+            "before running the full crawl"
+        )
+        logger.info("Running: " + " ".join(test_crawler_args))
+        test_crawl = subprocess.run(test_crawler_args, check=False)
+        if test_crawl.returncode != 0:
+            logger.error(
+                f"Test crawl returned an error: {test_crawl.returncode}, scraper "
+                "exiting"
+            )
+            cancel_cleanup()
+            return test_crawl.returncode
+
+        test_warc2zim_args = replace_flag_value(
+            warc2zim_args, "--output", str(test_output_dir)
+        )
+        if "--overwrite" not in test_warc2zim_args:
+            test_warc2zim_args.append("--overwrite")
+        test_warc2zim_args.extend(
+            str(warc_file)
+            for warc_file in find_warc_dirs(test_crawl_dir, known_args.collection)
+        )
+
+        logger.info("")
+        logger.info("Running warc2zim on test crawl result")
+        test_warc2zim_exit_code = warc2zim(test_warc2zim_args)
+        if test_warc2zim_exit_code:
+            logger.error(
+                "warc2zim failed on test crawl content, exiting before running "
+                f"the full crawl (exit code {test_warc2zim_exit_code})"
+            )
+            cancel_cleanup()
+            return EXIT_CODE_WARC2ZIM_TEST_CRAWL_FAILED
+        logger.info("Test crawl and conversion succeeded, continuing with full crawl")
+
     output_dir = Path(known_args.output)
     warc2zim_stats_file = (
         Path(known_args.warc2zim_progress_file)
@@ -1100,28 +1163,7 @@ def run(raw_args):
             cancel_cleanup()
             return crawl.returncode
 
-        if known_args.collection:
-            warc_files = [
-                temp_root_dir.joinpath(f"collections/{known_args.collection}/archive/")
-            ]
-
-        else:
-            warc_dirs = sorted(
-                temp_root_dir.rglob("collections/crawl-*/archive/"),
-                key=lambda path: path.lstat().st_mtime,
-            )
-            if len(warc_dirs) == 0:
-                raise RuntimeError(
-                    "Failed to find directory where WARC files have been created"
-                )
-            elif len(warc_dirs) > 1:
-                logger.info(
-                    "Found many WARC files directories, combining pages from all "
-                    "of them"
-                )
-                for directory in warc_dirs:
-                    logger.info(f"- {directory}")
-            warc_files = warc_dirs
+        warc_files = find_warc_dirs(temp_root_dir, known_args.collection)
 
     logger.info("")
     logger.info("----------")
@@ -1147,6 +1189,53 @@ def run(raw_args):
         cancel_cleanup()
 
     return warc2zim_exit_code
+
+
+def strip_flag(args: list[str], flag: str) -> list[str]:
+    """Return a copy of args with every occurrence of flag and its value removed"""
+    result = []
+    skip_next = False
+    for arg in args:
+        if skip_next:
+            skip_next = False
+            continue
+        if arg == flag:
+            skip_next = True
+            continue
+        result.append(arg)
+    return result
+
+
+def replace_flag_value(args: list[str], flag: str, value: str) -> list[str]:
+    """Return a copy of args with flag's value replaced (or flag+value appended)"""
+    result = list(args)
+    try:
+        result[result.index(flag) + 1] = value
+    except ValueError:
+        result += [flag, value]
+    return result
+
+
+def find_warc_dirs(root_dir: Path, collection: str | None) -> list[Path]:
+    """Locate the directory(ies) holding WARC files produced by a crawl"""
+    if collection:
+        return [root_dir.joinpath(f"collections/{collection}/archive/")]
+
+    warc_dirs = sorted(
+        root_dir.rglob("collections/crawl-*/archive/"),
+        key=lambda path: path.lstat().st_mtime,
+    )
+    if len(warc_dirs) == 0:
+        raise RuntimeError(
+            "Failed to find directory where WARC files have been created"
+        )
+    elif len(warc_dirs) > 1:
+        logger.info(
+            "Found many WARC files directories, combining pages from all of them"
+        )
+        for directory in warc_dirs:
+            logger.info(f"- {directory}")
+    return warc_dirs
 
 
 def get_cleaned_url(url: str):
@@ -1284,7 +1373,7 @@ def sigint_handler(*args):  # noqa: ARG001
     logger.info("SIGINT/SIGTERM received, stopping zimit")
     logger.info("")
     logger.info("")
-    sys.exit(3)
+    sys.exit(EXIT_CODE_SIGINT_RECEIVED)
 
 
 def zimit():

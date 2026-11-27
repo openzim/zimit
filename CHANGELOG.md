@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Run a single-page test crawl and real warc2zim conversion before the full crawl, to catch most warc2zim failures early instead of after a potentially very long crawl (#604)
+
+### Changed
+
+- Move zimit's own exit codes to a dedicated 100+ range so they never collide with Browsertrix Crawler's own exit codes (#604)
+
 ## [3.2.0] - 2026-11-24
 
 ### Added
